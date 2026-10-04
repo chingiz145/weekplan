@@ -1,0 +1,14 @@
+# Netlify: статический сайт без сборки — публикуем корень репозитория
+[build]
+  publish = "."
+  command = ""
+
+# Service worker и manifest не кэшировать агрессивно, чтобы обновления доходили
+[[headers]]
+  for = "/service-worker.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"

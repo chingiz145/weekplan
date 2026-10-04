@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- WeekPlan v4.2 | 2026-10-04 -->
+<title>WeekPlan</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d0d12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WeekPlan">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d12;
+    --surface: #15151e;
+    --surface2: #1c1c28;
+    --surface3: #21212f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --border3: rgba(255,255,255,0.18);
+    --text: #f0eee8;
+    --muted: #7a7888;
+    --muted2: #55536a;
+    --accent: #7f77dd;
+    --accent-dim: rgba(127,119,221,0.15);
+    --green: #1d9e75;
+    --green-dim: rgba(29,158,117,0.15);
+    --amber: #ba7517;
+    --amber-dim: rgba(186,117,23,0.15);
+    --red: #e24b4a;
+    --red-dim: rgba(226,75,74,0.15);
+    --today-glow: rgba(127,119,221,0.06);
+  }
+
+  body.light {
+    --bg: #f5f0e8;
+    --surface: #ede8df;
+    --surface2: #e4ddd2;
+    --surface3: #d8d0c4;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.13);
+    --border3: rgba(0,0,0,0.20);
+    --text: #1a1814;
+    --muted: #8a836f;
+    --muted2: #a89e8a;
+    --accent: #6b62c8;
+    --accent-dim: rgba(107,98,200,0.12);
+    --green: #187a5a;
+    --green-dim: rgba(24,122,90,0.12);
+    --amber: #9a6010;
+    --amber-dim: rgba(154,96,16,0.12);
+    --red: #c43b3a;
+    --red-dim: rgba(196,59,58,0.12);
+    --today-glow: rgba(107,98,200,0.07);
+  }
+
+  /* Тема переключатель */
+  .theme-toggle {
+    width: 28px; height: 28px; border-radius: 7px; cursor: pointer;
+    border: 1px solid var(--border2); background: transparent;
+    color: var(--muted); font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  /* ── HEADER ── */
+  header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    padding-top: calc(14px + env(safe-area-inset-top));
+    padding-left: calc(20px + env(safe-area-inset-left));
+    padding-right: calc(20px + env(safe-area-inset-right));
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    position: sticky; top: 0; background: var(--bg); z-index: 20;
+  }
+  .logo { font-family: 'Unbounded', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: -0.5px; flex-shrink: 0; }
+  .logo span { color: var(--accent); }
+
+  .header-center { display: flex; align-items: center; gap: 10px; }
+  .week-nav button {
+    background: var(--surface2); border: 1px solid var(--border2); color: var(--text);
+    width: 28px; height: 28px; border-radius: 7px; cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; transition: border-color 0.15s;
+  }
+  .week-nav button:hover { border-color: var(--accent); }
+  .week-label { font-size: 12px; font-weight: 500; color: var(--text); min-width: 180px; text-align: center; }
+  #todayBtn { min-width: 54px; font-size: 10px; font-family: 'Inter',sans-serif; font-weight: 600; color: var(--accent); letter-spacing: 0.5px; }
+
+  /* ── DATA TOOLBAR ── */
+  .data-toolbar { display: flex; align-items: center; gap: 8px; }
+
+  .tool-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 10px; border-radius: 7px;
+    border: 1px solid var(--border2); background: transparent;
+    color: var(--muted); font-size: 11px; font-family: 'Inter', sans-serif;
+    font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .tool-btn:hover { color: var(--text); border-color: var(--border3); background: var(--surface2); }
+  .tool-btn.save-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+  .tool-btn.load-btn:hover { color: var(--green); border-color: var(--green); background: var(--green-dim); }
+  .tool-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+  /* Save indicator */
+  .save-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--muted2);
+    transition: background 0.3s; flex-shrink: 0;
+  }
+  .save-dot.saved   { background: var(--green); }
+  .save-dot.unsaved { background: var(--amber); }
+
+  /* Sync indicator */
+  .sync-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--muted2);
+    transition: background 0.3s; flex-shrink: 0;
+  }
+  .sync-dot.synced  { background: var(--accent); }
+  .sync-dot.syncing { background: var(--amber); animation: syncing 1s linear infinite; }
+  .sync-dot.error   { background: var(--red); }
+  @keyframes syncing { 50% { opacity: 0.3; } }
+
+  .cloud-btn.connected { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+  .tool-btn.analyze-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; height: calc(100vh - 57px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 196px; min-width: 196px; background: var(--surface);
+    border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden;
+  }
+  .sidebar-header {
+    padding: 13px 13px 9px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sidebar-title { font-family: 'Unbounded', sans-serif; font-size: 8px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--muted); }
+  .sidebar-add-btn {
+    width: 22px; height: 22px; border-radius: 6px; background: transparent;
+    border: 1px solid var(--border2); color: var(--muted); font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+  }
+  .sidebar-add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .projects-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+  .buffer-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+
+  .buffer-item {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 7px; padding: 8px 28px 8px 9px;
+    position: relative; cursor: pointer;
+    transition: border-color 0.12s, transform 0.1s, opacity 0.12s;
+  }
+  .buffer-item:hover { border-color: var(--border2); transform: translateY(-1px); }
+  .buffer-item.done { opacity: 0.45; }
+  .buffer-item.done .buffer-item-title { text-decoration: line-through; color: var(--muted); }
+  .buffer-item-title { font-size: 11.5px; font-weight: 500; color: var(--text); line-height: 1.4; }
+  .buffer-item-meta { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+
+  .buffer-btns {
+    position: absolute; right: 5px; top: 5px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .buffer-send-btn, .buffer-done-btn {
+    width: 18px; height: 18px; font-size: 11px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .buffer-send-btn {
+    border-radius: 5px;
+    background: var(--accent-dim); border: 1px solid var(--accent);
+    color: var(--accent); font-size: 13px;
+  }
+  .buffer-send-btn:hover { background: var(--accent); color: white; }
+  .buffer-done-btn {
+    border-radius: 50%;
+    background: transparent; border: 1px solid var(--border2);
+    color: var(--green);
+  }
+  .buffer-done-btn:hover { border-color: var(--green); background: var(--green-dim); }
+  .buffer-item.done .buffer-done-btn { background: var(--green); border-color: var(--green); color: white; }
+
+  .buffer-empty { padding: 16px 8px; text-align: center; font-size: 10px; color: var(--muted2); font-style: italic; }
+
+  .proj-item {
+    display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 7px;
+    cursor: pointer; transition: background 0.12s; position: relative; border: 1px solid transparent;
+  }
+  .proj-item:hover { background: var(--surface2); }
+  .proj-item.active { background: var(--surface2); border-color: var(--border2); }
+  .proj-item.active .proj-name { color: var(--text); }
+  .proj-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .proj-name { font-size: 12px; font-weight: 500; color: var(--muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .proj-count { font-size: 10px; color: var(--muted2); background: var(--surface3); padding: 1px 5px; border-radius: 4px; flex-shrink: 0; }
+  .proj-item-all .proj-name { color: var(--text); }
+  .proj-delete {
+    opacity: 0; position: absolute; right: 6px; width: 16px; height: 16px; border-radius: 4px;
+    background: transparent; border: none; color: var(--red); font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: opacity 0.12s;
+  }
+  .proj-item:hover .proj-delete { opacity: 1; }
+
+  .sidebar-stats { padding: 10px 13px 13px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 5px; }
+  .s-stat { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); }
+  .s-stat-val { font-weight: 600; color: var(--text); font-size: 12px; }
+
+  /* ── MAIN ── */
+  .main-area { flex: 1; overflow: auto; display: flex; flex-direction: column; }
+  .filter-bar {
+    padding: 8px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: var(--bg); position: sticky; top: 0; z-index: 5;
+  }
+  .filter-label { font-size: 11px; color: var(--muted); }
+  .filter-btn {
+    padding: 3px 9px; border-radius: 6px; border: 1px solid var(--border2);
+    background: transparent; color: var(--muted); font-size: 11px;
+    font-family: 'Inter',sans-serif; cursor: pointer; transition: all 0.12s;
+  }
+  .filter-btn:hover, .filter-btn.active { background: var(--surface2); color: var(--text); border-color: var(--border3); }
+  .filter-sep { width: 1px; height: 14px; background: var(--border2); flex-shrink: 0; }
+  .proj-filter-badge {
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 6px; border: 1px solid;
+    font-size: 11px; font-family: 'Inter',sans-serif; cursor: pointer; transition: all 0.12s; font-weight: 500;
+  }
+  .proj-add-chip {
+    padding: 3px 9px; border-radius: 6px; border: 1px dashed var(--border2);
+    background: transparent; color: var(--muted); font-size: 11px;
+    font-family: 'Inter',sans-serif; cursor: pointer; transition: all 0.12s; font-weight: 500;
+  }
+  .proj-add-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  .board { display: grid; grid-template-columns: repeat(5, 1fr) 1fr; gap: 1px; background: var(--border); flex: 1; }
+  .day-col { background: var(--surface); display: flex; flex-direction: column; min-height: 480px; }
+  .day-col.today { background: var(--today-glow); }
+  .weekend-col { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+  .weekend-col .day-col { flex: 1; min-height: unset; }
+  .day-header { padding: 13px 11px 9px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: inherit; z-index: 2; }
+  .day-name { font-family: 'Unbounded', sans-serif; font-size: 8px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .day-col.today .day-name { color: var(--accent); }
+  .day-date-row { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+  .day-date { font-size: 20px; font-weight: 600; font-family: 'Unbounded', sans-serif; line-height: 1; }
+  .day-col.today .day-date { color: var(--accent); }
+  .day-count { margin-top: 4px; font-size: 10px; color: var(--muted2); }
+  .day-total { color: var(--accent); font-weight: 600; }
+  .day-add-btn {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    background: transparent; border: 1px solid var(--border2);
+    color: var(--muted2); font-size: 16px; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; opacity: 0;
+  }
+  .day-header:hover .day-add-btn { opacity: 1; }
+  .day-add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .tasks-list { padding: 7px 5px; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+
+  .task-card {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 52px 8px 10px; cursor: pointer; transition: border-color 0.12s, transform 0.1s;
+    position: relative; overflow: hidden;
+  }
+  .task-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+  .task-card.done { opacity: 0.4; }
+  .task-card.done .task-title { text-decoration: line-through; color: var(--muted); }
+  .task-card.in-progress { border-color: var(--accent); }
+  .task-card.in-progress::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    border-radius: 8px; box-shadow: inset 0 0 0 1px var(--accent);
+  }
+  .task-card.dragging { opacity: 0.4; transform: scale(0.97); }
+  .day-col.drag-over { background: var(--accent-dim); box-shadow: inset 0 0 0 2px var(--accent); }
+  .week-nav button.drag-over { background: var(--accent); border-color: var(--accent); color: white; transform: scale(1.15); }
+  .task-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+  .task-card.prio-high::before, .task-card.prio-morning::before { background: var(--red); }
+  .task-card.prio-medium::before, .task-card.prio-day::before   { background: var(--amber); }
+  .task-card.prio-low::before, .task-card.prio-evening::before  { background: var(--green); }
+  .task-title { font-size: 12px; font-weight: 500; color: var(--text); line-height: 1.45; }
+  .task-footer { display: flex; align-items: center; gap: 5px; margin-top: 4px; flex-wrap: wrap; }
+  .task-time { font-size: 11px; color: var(--muted); }
+  .proj-chip { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; }
+  .proj-chip-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+  .task-card.delegated { border-style: dashed; }
+  .task-card.delegated::before { background: #888 !important; }
+  .delegate-chip { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; background: rgba(136,135,128,0.15); color: var(--muted); }
+  .moved-chip { display: inline-flex; align-items: center; gap: 2px; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; background: var(--amber-dim); color: var(--amber); }
+  .task-btns {
+    position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 3px; align-items: center;
+  }
+  .task-btn {
+    width: 17px; height: 17px; border-radius: 4px; border: 1px solid var(--border2);
+    background: transparent; display: flex; align-items: center; justify-content: center;
+    font-size: 8px; cursor: pointer; transition: all 0.15s; color: transparent; flex-shrink: 0;
+  }
+  /* Кнопка «в работу» — квадратик */
+  .task-btn-work { border-radius: 4px; }
+  .task-btn-work:hover { border-color: var(--accent); background: var(--accent-dim); }
+  .task-card.in-progress .task-btn-work { background: var(--accent); border-color: var(--accent); }
+  /* Кнопка «готово» — кружок */
+  .task-btn-done { border-radius: 50%; }
+  .task-btn-done:hover { border-color: var(--green); background: var(--green-dim); }
+  .task-card.done .task-btn-done { background: var(--green); border-color: var(--green); color: white; }
+
+  /* Таймер на карточке */
+  .task-elapsed {
+    font-size: 9px; font-weight: 600; color: var(--muted);
+    margin-top: 3px; display: flex; align-items: center; gap: 3px;
+  }
+  .task-elapsed.running { color: var(--accent); }
+  .task-elapsed.finished { color: var(--muted); }
+
+  .empty-day { padding: 14px 6px; text-align: center; font-size: 10px; color: var(--muted2); font-style: italic; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
+    background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px;
+    padding: 10px 18px; font-size: 12px; color: var(--text);
+    opacity: 0; transition: all 0.25s; z-index: 200; pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error   { border-color: var(--red);   color: var(--red);   }
+
+  /* ── MODALS ── */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 50;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-backdrop.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface2); border: 1px solid var(--border2); border-radius: 16px;
+    padding: 22px; width: 100%; max-width: 420px;
+    transform: translateY(10px); transition: transform 0.2s;
+  }
+  .modal-backdrop.open .modal { transform: translateY(0); }
+  .modal h3 { font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 600; margin-bottom: 18px; }
+  .form-group { margin-bottom: 13px; }
+  .form-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 5px; display: block; font-weight: 600; }
+  .form-control {
+    width: 100%; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px;
+    padding: 8px 11px; color: var(--text); font-size: 13px; font-family: 'Inter', sans-serif;
+    outline: none; transition: border-color 0.15s;
+  }
+  .form-control:focus { border-color: var(--accent); }
+  textarea.form-control { resize: vertical; min-height: 60px; }
+  select.form-control { cursor: pointer; appearance: none; padding-right: 28px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7888'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+  select.form-control option { background: #1c1c28; }
+  .prio-btns { display: flex; gap: 7px; }
+  .prio-btn {
+    flex: 1; padding: 6px; border-radius: 7px; border: 1px solid var(--border2);
+    background: transparent; color: var(--muted); font-size: 11px;
+    font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.15s; font-weight: 500;
+  }
+  .prio-btn.active-high, .prio-btn.active-morning { background: var(--red-dim);   border-color: var(--red);   color: var(--red);   }
+  .prio-btn.active-medium, .prio-btn.active-day   { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
+  .prio-btn.active-low, .prio-btn.active-evening  { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .modal-actions {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px;
+    justify-content: flex-end;
+  }
+  .btn {
+    flex: 1 1 calc(33.333% - 8px); min-width: 0;
+    padding: 9px 12px; border-radius: 9px; border: none;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    font-family: 'Inter', sans-serif; transition: all 0.15s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.2;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--muted); }
+  .btn-ghost:hover { background: var(--surface); color: var(--text); }
+  .btn-danger { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); }
+  .btn-danger:hover { background: var(--red); color: white; }
+  .btn-move { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); }
+  .btn-move:hover { background: var(--accent); color: white; }
+  .btn-delegate { background: rgba(136,135,128,0.12); border: 1px solid rgba(136,135,128,0.35); color: var(--muted); }
+  .btn-delegate:hover { background: rgba(136,135,128,0.25); color: var(--text); }
+  .btn-reset { background: var(--amber-dim); border: 1px solid var(--amber); color: var(--amber); }
+  .btn-reset:hover { background: var(--amber); color: white; }
+  .tool-btn.rollover-btn:hover { color: var(--amber); border-color: var(--amber); background: var(--amber-dim); }
+  .color-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+  .color-swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
+  .color-swatch.selected { border-color: white; transform: scale(1.15); }
+
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  @media (max-width: 1000px) { .sidebar { width: 156px; min-width: 156px; } .board { grid-template-columns: repeat(3, 1fr) 1fr; } }
+  @media (max-width: 680px)  { .sidebar { display: none; } .board { grid-template-columns: repeat(2, 1fr); } .weekend-col { grid-column: span 2; } .week-label { min-width: 140px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">WEEK<span>.</span>PLAN</div>
+
+  <div class="header-center week-nav">
+    <button id="prevWeek">&#8592;</button>
+    <span class="week-label" id="weekLabel"></span>
+    <button id="nextWeek">&#8594;</button>
+    <button id="todayBtn">Сегодня</button>
+  </div>
+
+  <div class="data-toolbar">
+    <div class="save-dot" id="saveDot" title="Статус сохранения"></div>
+    <div class="sync-dot" id="syncDot" title="Облако не настроено"></div>
+
+    <!-- Облачная синхронизация -->
+    <button class="tool-btn cloud-btn" onclick="openCloudModal()" title="Облачная синхронизация между устройствами">
+      <svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+      <span id="cloudBtnLabel">Облако</span>
+    </button>
+
+    <!-- Анализ недели -->
+    <button class="tool-btn analyze-btn" onclick="openAnalyzeModal()" title="ИИ-анализ недели и советы по оптимизации">
+      <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-4 12.7V17a1 1 0 001 1h6a1 1 0 001-1v-2.3A7 7 0 0012 2z"/><line x1="9" y1="21" x2="15" y2="21"/></svg>
+      Анализ недели
+    </button>
+
+    <!-- Перенос незавершённых на след. неделю -->
+    <button class="tool-btn rollover-btn" onclick="openRolloverModal()" title="Перенести незавершённые задачи на следующий понедельник">
+      <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+      Перенести
+    </button>
+
+    <!-- Тема -->
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Сменить тему">☀</button>
+
+    <!-- Экспорт -->
+    <button class="tool-btn save-btn" onclick="exportData()" title="Сохранить tasks.json на диск">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Сохранить файл
+    </button>
+
+    <!-- Импорт (скрытый input) -->
+    <button class="tool-btn load-btn" onclick="document.getElementById('importInput').click()" title="Загрузить tasks.json с диска">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10" transform="rotate(180 12 12)"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Загрузить файл
+    </button>
+    <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+</header>
+
+<div class="layout">
+
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Буфер</span>
+      <button class="sidebar-add-btn" onclick="openBufferModal()" title="Добавить в буфер">+</button>
+    </div>
+    <div class="buffer-list" id="bufferList"></div>
+    <div class="sidebar-stats">
+      <div class="s-stat"><span>В буфере</span><span class="s-stat-val" id="statBuffer">0</span></div>
+      <div class="s-stat"><span>Всего задач</span><span class="s-stat-val" id="statTotal">0</span></div>
+      <div class="s-stat"><span>Выполнено</span><span class="s-stat-val"  id="statDone">0</span></div>
+    </div>
+  </div>
+
+  <div class="main-area">
+    <div class="filter-bar">
+      <span class="filter-label">Показать:</span>
+      <button class="filter-btn active" id="filterAll"    onclick="setFilter('all')">Все</button>
+      <button class="filter-btn"        id="filterActive" onclick="setFilter('active')">Активные</button>
+      <button class="filter-btn"        id="filterDone"   onclick="setFilter('done')">Выполненные</button>
+      <div class="filter-sep"></div>
+      <div id="projFilterChips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      <button class="proj-add-chip" onclick="openProjectModal()" title="Новый проект">+ проект</button>
+    </div>
+    <div class="board" id="board"></div>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalTitle">Новая задача</h3>
+    <div class="form-group">
+      <label class="form-label">Название задачи</label>
+      <textarea class="form-control" id="taskTitle" placeholder="Что нужно сделать?"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Проект</label>
+      <select class="form-control" id="taskProject"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Время</label>
+      <input type="text" class="form-control" id="taskTime" placeholder="Например: 10:00 или весь день">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Время дня</label>
+      <div class="prio-btns">
+        <button class="prio-btn" data-prio="morning" onclick="setPrio('morning')">Утро</button>
+        <button class="prio-btn" data-prio="day"     onclick="setPrio('day')">День</button>
+        <button class="prio-btn" data-prio="evening" onclick="setPrio('evening')">Вечер</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost"     onclick="closeModal()">Отмена</button>
+      <button class="btn btn-danger"    id="deleteBtn"       style="display:none" onclick="deleteTask()">Удалить</button>
+      <button class="btn btn-reset"     id="resetTimerBtn"   style="display:none" onclick="resetTaskTimer()">Сбросить таймер</button>
+      <button class="btn btn-move"      id="moveToTodayBtn"  style="display:none" onclick="moveToToday()">На сегодня</button>
+      <button class="btn btn-delegate"  id="delegateBtn"     style="display:none" onclick="openDelegateModal()">Делегировать</button>
+      <button class="btn btn-primary"   onclick="saveTask()" id="saveBtn">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delegate Modal -->
+<div class="modal-backdrop" id="delegateModalBackdrop">
+  <div class="modal">
+    <h3>Делегировать задачу</h3>
+    <div class="form-group">
+      <label class="form-label">Кому делегируем</label>
+      <input type="text" class="form-control" id="delegateTo" placeholder="Имя или должность">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Дата проверки исполнения</label>
+      <input type="date" class="form-control" id="delegateDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Комментарий (необязательно)</label>
+      <textarea class="form-control" id="delegateNote" placeholder="Что именно нужно сделать..." style="min-height:52px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost"    onclick="closeDelegateModal()">Отмена</button>
+      <button class="btn btn-primary"  onclick="saveDelegate()">Делегировать</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rollover Modal -->
+<div class="modal-backdrop" id="rolloverModalBackdrop">
+  <div class="modal">
+    <h3>Перенести незавершённые задачи</h3>
+    <p id="rolloverDesc" style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;"></p>
+    <div id="rolloverStep1">
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeRolloverModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="rolloverStep2()">Да, перенести</button>
+      </div>
+    </div>
+    <div id="rolloverStep2" style="display:none">
+      <p style="font-size:12px;color:var(--red);margin-bottom:14px;font-weight:500;">Это действие нельзя отменить. Вы уверены?</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeRolloverModal()">Нет, отмена</button>
+        <button class="btn btn-danger" onclick="doRollover()">Да, точно перенести</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Project Modal -->
+<div class="modal-backdrop" id="projModalBackdrop">
+  <div class="modal">
+    <h3 id="projModalTitle">Новый проект</h3>
+    <div class="form-group">
+      <label class="form-label">Название проекта</label>
+      <input type="text" class="form-control" id="projName" placeholder="Например: Работа, Личное...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Цвет</label>
+      <div class="color-picker" id="colorPicker"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost"   onclick="closeProjModal()">Отмена</button>
+      <button class="btn btn-danger"  id="projDeleteBtn" style="display:none" onclick="deleteProjectFromModal()">Удалить</button>
+      <button class="btn btn-primary" onclick="saveProject()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Buffer Modal -->
+<div class="modal-backdrop" id="bufferModalBackdrop">
+  <div class="modal">
+    <h3 id="bufferModalTitle">Добавить в буфер</h3>
+    <div class="form-group">
+      <label class="form-label">Название задачи</label>
+      <textarea class="form-control" id="bufferTitle" placeholder="Что нужно сделать когда-нибудь..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Проект</label>
+      <select class="form-control" id="bufferProject"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost"  onclick="closeBufferModal()">Отмена</button>
+      <button class="btn btn-danger" id="bufferDeleteBtn" style="display:none" onclick="deleteBufferItem()">Удалить</button>
+      <button class="btn btn-primary" onclick="saveBufferItem()" id="bufferSaveBtn">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cloud Sync Modal (Supabase) -->
+<div class="modal-backdrop" id="cloudModalBackdrop">
+  <div class="modal" style="max-width:460px">
+    <h3>Облачная синхронизация</h3>
+    <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px;">
+      Задачи хранятся в вашей бесплатной базе <a href="https://supabase.com" target="_blank" style="color:var(--accent)">Supabase</a> и синхронизируются между iPhone, Mac и любыми устройствами автоматически. Настройка — один раз (см. инструкцию в README).
+    </p>
+    <div id="fileStatus" style="font-size:12px;padding:10px 12px;border-radius:8px;background:var(--surface);margin-bottom:14px;color:var(--muted);line-height:1.5;">
+      Не настроено
+    </div>
+
+    <!-- Быстрый перенос настроек на второй компьютер -->
+    <div class="form-group">
+      <label class="form-label">Код подключения (быстрый способ)</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" class="form-control" id="sbPaste" placeholder="вставьте код с первого компьютера" style="font-family:monospace;font-size:11px">
+        <button class="btn btn-primary" style="flex:0 0 auto;padding:9px 14px;" onclick="applyConnCode()">Применить</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted2);margin-top:5px;line-height:1.4;">
+        На первом компьютере настройте поля ниже и нажмите «Скопировать код» — на втором просто вставьте его сюда.
+      </div>
+    </div>
+
+    <details style="margin-bottom:12px;">
+      <summary style="font-size:12px;color:var(--muted);cursor:pointer;user-select:none;">Настроить вручную (первый раз)</summary>
+      <div style="margin-top:12px;">
+        <div class="form-group">
+          <label class="form-label">Project URL</label>
+          <input type="text" class="form-control" id="sbUrl" placeholder="https://xxxx.supabase.co" style="font-family:monospace;font-size:11px">
+        </div>
+        <div class="form-group">
+          <label class="form-label">anon public key</label>
+          <input type="password" class="form-control" id="sbKey" placeholder="eyJhbGci..." style="font-family:monospace;font-size:11px">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Код синхронизации (одинаковый на всех устройствах)</label>
+          <input type="text" class="form-control" id="sbCode" placeholder="например: chingiz-2026">
+        </div>
+      </div>
+    </details>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost"    onclick="closeCloudModal()">Закрыть</button>
+      <button class="btn btn-danger"   id="cloudDisconnectBtn" style="display:none" onclick="disconnectFileSync()">Отключить</button>
+      <button class="btn btn-ghost"    id="cloudCopyBtn" style="display:none" onclick="copyConnCode()">Скопировать код</button>
+      <button class="btn btn-primary"  id="cloudConnectBtn" onclick="connectCloud()">Подключить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Analyze Week Modal -->
+<div class="modal-backdrop" id="analyzeModalBackdrop">
+  <div class="modal" style="max-width:560px">
+    <h3>Анализ недели</h3>
+
+    <!-- Шаг настройки ключа -->
+    <div id="analyzeSetup">
+      <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px;">
+        Для анализа нужен API-ключ Anthropic. Получите его на
+        <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent)">console.anthropic.com</a>
+        → <em>API Keys</em>. Ключ хранится только в вашем браузере.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Anthropic API Key</label>
+        <input type="password" class="form-control" id="anthropicKey" placeholder="sk-ant-..." style="font-family:monospace;font-size:11px">
+      </div>
+    </div>
+
+    <!-- Состояние загрузки -->
+    <div id="analyzeLoading" style="display:none;text-align:center;padding:30px 0;">
+      <div class="spinner" style="margin:0 auto 14px;"></div>
+      <div style="font-size:12px;color:var(--muted)">Claude анализирует вашу неделю...</div>
+    </div>
+
+    <!-- Результат -->
+    <div id="analyzeResult" style="display:none;">
+      <div id="analyzeContent" style="font-size:13px;line-height:1.65;color:var(--text);max-height:50vh;overflow-y:auto;padding-right:6px;"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost"   onclick="closeAnalyzeModal()">Закрыть</button>
+      <button class="btn btn-primary" id="analyzeRunBtn" onclick="runAnalysis()">Анализировать</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Константы ────────────────────────────────────────────────────────────────
+
+const STORAGE_KEY     = 'weekplan_data';
+const EXPORT_FILENAME = 'weekplan-tasks.json';
+
+// JSONBin: настраивается через интерфейс (кнопка ☁ в шапке).
+// Master Key и Bin ID хранятся в localStorage.
+const JSONBIN_URL  = 'https://api.jsonbin.io/v3/b/';
+const SYNC_INTERVAL_MS = 15000;  // как часто опрашивать сервер на изменения
+
+const PROJECT_COLORS = [
+  '#7f77dd','#1d9e75','#e24b4a','#ba7517','#378add',
+  '#d4537e','#639922','#5dcaa5','#d85a30','#888780',
+  '#534ab7','#0f6e56','#a32d2d','#854f0b','#185fa5',
+];
+
+const DEFAULT_PROJECTS = [
+  { id: 'p_work',     name: 'Работа', color: '#7f77dd' },
+  { id: 'p_personal', name: 'Личное', color: '#1d9e75' },
+];
+
+// ─── Состояние ────────────────────────────────────────────────────────────────
+
+let tasks               = {};
+let projects            = [...DEFAULT_PROJECTS];
+let buffer              = [];   // [{ id, title, project, prio }]
+let currentWeekOffset   = 0;
+let editingTask         = null;
+let selectedDay         = null;
+let selectedPrio        = 'morning';
+let activeFilter        = 'all';
+let activeProjectFilter = null;
+let editingProjectId    = null;
+let editingBufferId     = null;
+let selectedColor       = PROJECT_COLORS[0];
+let hasUnsavedChanges   = false;
+let dragData            = null;   // { fromKey, taskId } при перетаскивании
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+
+function getWeekDates(offset = 0) {
+  const now = new Date(), day = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + offset * 7);
+  monday.setHours(0,0,0,0);
+  return Array.from({length: 7}, (_, i) => {
+    const d = new Date(monday); d.setDate(monday.getDate() + i); return d;
+  });
+}
+function dateKey(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function isToday(d) { return dateKey(d) === dateKey(new Date()); }
+function formatWeekLabel(dates) {
+  const M = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const s = dates[0], e = dates[6];
+  return `${s.getDate()} ${M[s.getMonth()]} — ${e.getDate()} ${M[e.getMonth()]} ${e.getFullYear()}`;
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function ending(n) {
+  if (n%10===1 && n%100!==11) return 'а';
+  if ([2,3,4].includes(n%10) && ![12,13,14].includes(n%100)) return 'и';
+  return '';
+}
+function hexAlpha(hex, a) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function getProject(id) { return projects.find(p => p.id === id) || null; }
+function allTasks() { return Object.values(tasks).flat(); }
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+
+let toastTimer = null;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ─── Save indicator ───────────────────────────────────────────────────────────
+
+function markUnsaved() {
+  hasUnsavedChanges = true;
+  document.getElementById('saveDot').className = 'save-dot unsaved';
+  document.getElementById('saveDot').title = 'Есть несохранённые изменения — нажмите «Сохранить файл»';
+}
+function markSaved() {
+  hasUnsavedChanges = false;
+  document.getElementById('saveDot').className = 'save-dot saved';
+  document.getElementById('saveDot').title = 'Данные сохранены в файл';
+  setTimeout(() => {
+    if (!hasUnsavedChanges) document.getElementById('saveDot').className = 'save-dot';
+  }, 3000);
+}
+
+// ─── Хранение (localStorage как кэш, файл как источник правды) ───────────────
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    tasks    = d.tasks    || {};
+    projects = d.projects || DEFAULT_PROJECTS;
+    buffer   = d.buffer   || [];
+    return true;
+  } catch { return false; }
+}
+
+function saveToStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, projects, buffer }));
+  markUnsaved();
+  schedulePush();
+}
+
+// ─── Облачная синхронизация (Supabase) ───────────────────────────────────────
+
+let sbUrl  = localStorage.getItem('weekplan_sb_url')  || null;
+let sbKey  = localStorage.getItem('weekplan_sb_key')  || null;
+let sbCode = localStorage.getItem('weekplan_sb_code') || null;
+
+let pushTimer  = null;
+let pullTimer  = null;
+let isPushing  = false;
+let isPulling  = false;
+let lastCloudHash = null;
+const CLOUD_POLL_MS = 5000;      // как часто опрашивать облако на изменения
+
+function cloudConfigured() { return !!(sbUrl && sbKey && sbCode); }
+
+function setSyncStatus(state) {
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('cloudBtnLabel');
+  const btn = document.querySelector('.cloud-btn');
+  if (!dot) return;
+  dot.className = 'sync-dot' + (state ? ' ' + state : '');
+  if (cloudConfigured()) {
+    btn.classList.add('connected');
+    lbl.textContent = state === 'syncing' ? 'Синхр...' : 'Облако';
+    dot.title = { synced:'Синхронизировано', syncing:'Синхронизация...', error:'Нет связи с облаком' }[state] || 'В облаке';
+  } else {
+    btn.classList.remove('connected');
+    lbl.textContent = 'Облако';
+    dot.title = 'Синхронизация не настроена';
+  }
+}
+
+function dataHash(obj) {
+  return JSON.stringify(obj).length + ':' + Object.keys(obj.tasks || {}).length;
+}
+
+function sbHeaders(extra) {
+  return Object.assign({
+    'apikey': sbKey,
+    'Authorization': 'Bearer ' + sbKey,
+    'Content-Type': 'application/json',
+  }, extra || {});
+}
+
+// Отправка данных в облако
+async function pushToCloud() {
+  if (!cloudConfigured() || isPushing || isPulling) return;
+  isPushing = true;
+  setSyncStatus('syncing');
+  try {
+    const payload = { tasks, projects, buffer };
+    const body = [{
+      sync_code:  sbCode,
+      payload:    payload,
+      updated_at: new Date().toISOString(),
+    }];
+    const r = await fetch(sbUrl + '/rest/v1/weekplan_data', {
+      method: 'POST',
+      headers: sbHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error('push ' + r.status);
+    lastCloudHash = dataHash(payload);
+    setSyncStatus('synced');
+  } catch (e) {
+    setSyncStatus('error');
+  } finally {
+    isPushing = false;
+  }
+}
+
+// Загрузка данных из облака
+async function pullFromCloud(silent = false) {
+  if (!cloudConfigured() || isPushing || isPulling) return false;
+  // Не тянем если есть запланированная отправка — иначе перезапишем локальные правки
+  if (pushTimer !== null) return false;
+  isPulling = true;
+  if (!silent) setSyncStatus('syncing');
+  try {
+    const url = sbUrl + '/rest/v1/weekplan_data?sync_code=eq.'
+              + encodeURIComponent(sbCode) + '&select=payload';
+    const r = await fetch(url, { headers: sbHeaders() });
+    if (!r.ok) throw new Error('pull ' + r.status);
+    const rows = await r.json();
+    if (rows.length) {
+      const rec = rows[0].payload || {};
+      const newHash = dataHash(rec);
+      if (newHash !== lastCloudHash) {
+        tasks    = rec.tasks    || {};
+        projects = rec.projects || DEFAULT_PROJECTS;
+        buffer   = rec.buffer   || [];
+        lastCloudHash = newHash;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, projects, buffer }));
+        render();
+      }
+    }
+    setSyncStatus('synced');
+    return true;
+  } catch (e) {
+    setSyncStatus('error');
+    return false;
+  } finally {
+    isPulling = false;
+  }
+}
+
+// Дебаунс отправки: при изменении ждём 1 сек и пушим
+function schedulePush() {
+  if (!cloudConfigured()) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => {
+    pushTimer = null;
+    pushToCloud();
+  }, 1000);
+}
+
+// Периодический опрос облака (синхронизация между устройствами)
+function startPolling() {
+  clearInterval(pullTimer);
+  if (cloudConfigured()) {
+    pullTimer = setInterval(() => pullFromCloud(true), CLOUD_POLL_MS);
+  }
+}
+
+// ─── UI облачной синхронизации ────────────────────────────────────────────────
+
+function openCloudModal() {
+  document.getElementById('sbUrl').value  = sbUrl  || '';
+  document.getElementById('sbKey').value  = sbKey  || '';
+  document.getElementById('sbCode').value = sbCode || '';
+  document.getElementById('sbPaste').value = '';
+  const status = document.getElementById('fileStatus');
+  if (cloudConfigured()) {
+    status.innerHTML = '<span style="color:var(--green)">✓ Облако подключено.</span> Данные синхронизируются автоматически между всеми устройствами с этим же кодом.';
+    document.getElementById('cloudDisconnectBtn').style.display = 'block';
+    document.getElementById('cloudCopyBtn').style.display = 'block';
+    document.getElementById('cloudConnectBtn').textContent = 'Обновить';
+  } else {
+    status.innerHTML = 'Не настроено. На первом компьютере заполните поля в «Настроить вручную». На втором — вставьте код подключения.';
+    document.getElementById('cloudDisconnectBtn').style.display = 'none';
+    document.getElementById('cloudCopyBtn').style.display = 'none';
+    document.getElementById('cloudConnectBtn').textContent = 'Подключить';
+  }
+  document.getElementById('cloudModalBackdrop').classList.add('open');
+}
+
+// Код подключения = base64 от JSON с тремя значениями (для переноса на второй компьютер)
+function makeConnCode() {
+  const data = { u: sbUrl, k: sbKey, c: sbCode };
+  return 'WP1-' + btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+}
+
+function copyConnCode() {
+  if (!cloudConfigured()) { showToast('Сначала подключите облако', 'error'); return; }
+  const code = makeConnCode();
+  const done = () => showToast('✓ Код скопирован — вставьте на втором компьютере', 'success');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(done).catch(() => {
+      document.getElementById('sbPaste').value = code; done();
+    });
+  } else {
+    document.getElementById('sbPaste').value = code; done();
+  }
+}
+
+function applyConnCode() {
+  const raw = document.getElementById('sbPaste').value.trim();
+  if (!raw) { showToast('Вставьте код подключения', 'error'); return; }
+  try {
+    if (!raw.startsWith('WP1-')) throw new Error('bad prefix');
+    const data = JSON.parse(decodeURIComponent(escape(atob(raw.slice(4)))));
+    if (!data.u || !data.k || !data.c) throw new Error('incomplete');
+    document.getElementById('sbUrl').value  = data.u;
+    document.getElementById('sbKey').value  = data.k;
+    document.getElementById('sbCode').value = data.c;
+    showToast('✓ Настройки заполнены — нажмите «Подключить»', 'success');
+  } catch {
+    showToast('Код подключения неверный', 'error');
+  }
+}
+
+function closeCloudModal() {
+  document.getElementById('cloudModalBackdrop').classList.remove('open');
+}
+
+async function connectCloud() {
+  // Нормализуем URL: убираем пробелы, хвостовые слэши и случайно вставленный /rest/v1
+  let url = document.getElementById('sbUrl').value.trim()
+    .replace(/\/+$/, '')
+    .replace(/\/rest\/v1$/i, '')
+    .replace(/\/+$/, '');
+  const key  = document.getElementById('sbKey').value.trim();
+  const code = document.getElementById('sbCode').value.trim();
+  if (!url || !key || !code) { showToast('Заполните все три поля', 'error'); return; }
+  if (!/^https:\/\//.test(url)) { showToast('URL должен начинаться с https://', 'error'); return; }
+
+  sbUrl = url; sbKey = key; sbCode = code;
+  setSyncStatus('syncing');
+
+  // Проверяем связь: пробуем прочитать строку
+  try {
+    const test = await fetch(sbUrl + '/rest/v1/weekplan_data?sync_code=eq.'
+               + encodeURIComponent(code) + '&select=payload', { headers: sbHeaders() });
+    if (!test.ok) throw new Error('status ' + test.status);
+    const rows = await test.json();
+
+    // Сохраняем конфиг
+    localStorage.setItem('weekplan_sb_url',  sbUrl);
+    localStorage.setItem('weekplan_sb_key',  sbKey);
+    localStorage.setItem('weekplan_sb_code', sbCode);
+
+    if (rows.length && rows[0].payload && Object.keys(rows[0].payload.tasks || {}).length) {
+      // На сервере уже есть данные — предлагаем взять их
+      if (confirm('В облаке уже есть сохранённые задачи по этому коду. Загрузить их? (Отмена — оставить локальные и перезаписать облако)')) {
+        await pullFromCloud();
+      } else {
+        await pushToCloud();
+      }
+    } else {
+      // Пусто на сервере — заливаем локальные
+      await pushToCloud();
+    }
+    startPolling();
+    closeCloudModal();
+    showToast('✓ Облако подключено', 'success');
+  } catch (e) {
+    setSyncStatus('error');
+    showToast('Не удалось подключиться. Проверьте URL, ключ и таблицу.', 'error');
+  }
+}
+
+function disconnectFileSync() {
+  if (!confirm('Отключить облачную синхронизацию? Данные в облаке останутся, но перестанут обновляться на этом устройстве.')) return;
+  sbUrl = null; sbKey = null; sbCode = null;
+  localStorage.removeItem('weekplan_sb_url');
+  localStorage.removeItem('weekplan_sb_key');
+  localStorage.removeItem('weekplan_sb_code');
+  clearInterval(pullTimer);
+  clearTimeout(pushTimer);
+  pushTimer = null;
+  setSyncStatus(null);
+  closeCloudModal();
+  showToast('Облако отключено', '');
+}
+
+// При старте — если облако настроено, подтягиваем данные и запускаем опрос
+async function restoreFileSync() {
+  if (!cloudConfigured()) { setSyncStatus(null); return; }
+  setSyncStatus('syncing');
+  await pullFromCloud();
+  startPolling();
+  // Досинхронизация при возвращении в приложение (важно для PWA на телефоне)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && cloudConfigured()) pullFromCloud(true);
+  });
+}
+
+// ─── Экспорт (скачать файл) ───────────────────────────────────────────────────
+
+function exportData() {
+  const payload = JSON.stringify({ tasks, projects, buffer }, null, 2);
+  const blob    = new Blob([payload], { type: 'application/json' });
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  a.href        = url;
+  a.download    = EXPORT_FILENAME;
+  a.click();
+  URL.revokeObjectURL(url);
+  markSaved();
+  showToast('✓ Файл сохранён: ' + EXPORT_FILENAME, 'success');
+}
+
+// ─── Импорт (загрузить файл) ──────────────────────────────────────────────────
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (!d.tasks && !d.projects) throw new Error('Неверный формат');
+      tasks    = d.tasks    || {};
+      projects = d.projects || DEFAULT_PROJECTS;
+      buffer   = d.buffer   || [];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, projects, buffer }));
+      hasUnsavedChanges = false;
+      document.getElementById('saveDot').className = 'save-dot';
+      render();
+      showToast('✓ Данные загружены из файла', 'success');
+    } catch {
+      showToast('✗ Ошибка: неверный формат файла', 'error');
+    }
+  };
+  reader.readAsText(file);
+  // Сбрасываем input чтобы можно было загрузить тот же файл повторно
+  event.target.value = '';
+}
+
+// ─── Предупреждение при закрытии ──────────────────────────────────────────────
+// Данные сохраняются автоматически (localStorage мгновенно + облако).
+// Предупреждаем только если облако настроено и есть НЕотправленные изменения
+// (например пропал интернет) — то есть реальный риск потери синхронизации.
+
+window.addEventListener('beforeunload', e => {
+  const syncActive  = cloudConfigured();
+  const pendingPush = pushTimer !== null;
+  if (syncActive && (pendingPush || isPushing)) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+
+function render() {
+  renderSidebar();
+  renderBoard();
+  renderProjFilterChips();
+  renderProjectSelect();
+}
+
+function renderSidebar() {
+  const list  = document.getElementById('bufferList');
+  const total = allTasks().length;
+  const done  = allTasks().filter(t => t.done).length;
+
+  list.innerHTML = '';
+
+  if (!buffer.length) {
+    list.innerHTML = '<div class="buffer-empty">пусто</div>';
+  } else {
+    buffer.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'buffer-item';
+
+      const proj = item.project ? getProject(item.project) : null;
+      const projChip = proj
+        ? `<span class="proj-chip" style="background:${hexAlpha(proj.color,0.15)};color:${proj.color}"><span class="proj-chip-dot" style="background:${proj.color}"></span>${esc(proj.name)}</span>`
+        : '';
+
+      // Суммарное время по всем копиям этой задачи
+      const totalMs = getBufferTotalMs(item.id);
+      const elapsedChip = totalMs > 0
+        ? `<span class="proj-chip" style="background:var(--accent-dim);color:var(--accent)" data-buffer-elapsed="${item.id}">⏱ ${formatElapsed(totalMs)}</span>`
+        : '';
+      const metaHtml = (projChip || elapsedChip) ? `<div class="buffer-item-meta">${projChip}${elapsedChip}</div>` : '';
+
+      el.innerHTML = `
+        <div class="buffer-item-title">${esc(item.title)}</div>
+        ${metaHtml}
+        <div class="buffer-btns">
+          <button class="buffer-send-btn" title="Скопировать в сегодня">+</button>
+          <button class="buffer-done-btn" title="Отметить выполненной и перенести в сегодня"></button>
+        </div>
+      `;
+      el.querySelector('.buffer-send-btn').addEventListener('click', e => { e.stopPropagation(); sendBufferToToday(item.id); });
+      el.querySelector('.buffer-done-btn').addEventListener('click', e => { e.stopPropagation(); toggleBufferDone(item.id); });
+      el.addEventListener('click', () => openBufferModal(item.id));
+      list.appendChild(el);
+    });
+  }
+
+  document.getElementById('statBuffer').textContent = buffer.length;
+  document.getElementById('statTotal').textContent  = total;
+  document.getElementById('statDone').textContent   = done;
+}
+
+function renderProjFilterChips() {
+  const wrap = document.getElementById('projFilterChips');
+  wrap.innerHTML = '';
+  projects.forEach(p => {
+    const isActive = activeProjectFilter === p.id;
+    const chip = document.createElement('div');
+    chip.className = 'proj-filter-badge';
+    chip.style.cssText = `background:${hexAlpha(p.color, isActive?0.2:0.08)};border-color:${hexAlpha(p.color, isActive?0.6:0.25)};color:${p.color}`;
+    chip.innerHTML = `<span style="width:6px;height:6px;border-radius:50%;background:${p.color};display:inline-block;flex-shrink:0"></span>${esc(p.name)}`;
+    chip.addEventListener('click', () => { activeProjectFilter = isActive ? null : p.id; render(); });
+    chip.addEventListener('dblclick', e => { e.stopPropagation(); openProjectModal(p.id); });
+    chip.title = 'Клик — фильтр · Двойной клик — изменить';
+    wrap.appendChild(chip);
+  });
+}
+
+function renderBoard() {
+  const dates = getWeekDates(currentWeekOffset);
+  document.getElementById('weekLabel').textContent = formatWeekLabel(dates);
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  const dayNames = ['ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'];
+
+  // Пн–Пт: обычные колонки
+  dates.slice(0, 5).forEach((date, i) => {
+    board.appendChild(makeDayCol(date, dayNames[i]));
+  });
+
+  // Сб+Вс: одна колонка, разделённая горизонтально
+  const weekendWrap = document.createElement('div');
+  weekendWrap.className = 'weekend-col';
+  dates.slice(5).forEach((date, i) => {
+    weekendWrap.appendChild(makeDayCol(date, dayNames[5 + i]));
+  });
+  board.appendChild(weekendWrap);
+}
+
+function makeDayCol(date, dayName) {
+  const key         = dateKey(date);
+  const allDayTasks = tasks[key] || [];
+  const filtered    = allDayTasks.filter(t => {
+    if (activeProjectFilter && t.project !== activeProjectFilter) return false;
+    if (activeFilter === 'active') return !t.done;
+    if (activeFilter === 'done')   return  t.done;
+    return true;
+  });
+
+  // Парсим время вида "10:00", "9:30", "14" из свободного текста
+  function parseTimeMinutes(t) {
+    if (!t || !t.time) return null;
+    const m = String(t.time).match(/(\d{1,2})(?::(\d{2}))?/);
+    if (!m) return null;
+    const h = parseInt(m[1], 10);
+    const min = m[2] ? parseInt(m[2], 10) : 0;
+    if (h > 23 || min > 59) return null;
+    return h * 60 + min;
+  }
+
+  // Сортировка внутри дня:
+  //   1) выполненные — всегда вниз
+  //   2) задачи с указанным временем — по хронологии (сверху вниз)
+  //   3) задачи без времени — ниже, сгруппированы по утро/день/вечер
+  const prioOrder = { morning: 0, high: 0, day: 1, medium: 1, evening: 2, low: 2 };
+  const sorted = [...filtered].sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+
+    const ta = parseTimeMinutes(a);
+    const tb = parseTimeMinutes(b);
+
+    // Оба с временем — по времени
+    if (ta !== null && tb !== null) return ta - tb;
+    // Только один с временем — он выше
+    if (ta !== null) return -1;
+    if (tb !== null) return 1;
+    // Оба без времени — по времени дня (утро/день/вечер)
+    return (prioOrder[a.prio] ?? 1) - (prioOrder[b.prio] ?? 1);
+  });
+
+  // Суммарное время ЗА ЭТОТ ДЕНЬ (только время наработанное в этот день)
+  const totalMs = allDayTasks.reduce((sum, t) => sum + taskDayMs(t, key), 0);
+  const totalStr = totalMs > 0 ? formatElapsed(totalMs) : '';
+
+  const col = document.createElement('div');
+  col.className = 'day-col' + (isToday(date) ? ' today' : '');
+  col.innerHTML = `
+    <div class="day-header">
+      <div class="day-name">${dayName}</div>
+      <div class="day-date-row">
+        <div class="day-date">${date.getDate()}</div>
+        <button class="day-add-btn" data-day="${key}" title="Добавить задачу">+</button>
+      </div>
+      <div class="day-count">
+        ${allDayTasks.length ? allDayTasks.length + ' задач' + ending(allDayTasks.length) : ''}
+        ${totalStr ? `<span class="day-total" data-key="${key}">· ${totalStr}</span>` : `<span class="day-total" data-key="${key}"></span>`}
+      </div>
+    </div>
+    <div class="tasks-list" id="list-${key}"></div>
+  `;
+  col.querySelector('.day-add-btn').addEventListener('click', () => openModal(key));
+
+  // Drop-зона для перетаскивания задач
+  col.addEventListener('dragover', e => {
+    if (!dragData) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    col.classList.add('drag-over');
+  });
+  col.addEventListener('dragleave', e => {
+    if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+  });
+  col.addEventListener('drop', e => {
+    e.preventDefault();
+    col.classList.remove('drag-over');
+    if (dragData) moveTaskToDay(dragData.fromKey, dragData.taskId, key);
+  });
+
+  const list = col.querySelector('#list-' + key);
+  if (!sorted.length) {
+    list.innerHTML = '<div class="empty-day">пусто</div>';
+  } else {
+    sorted.forEach(task => {
+      list.appendChild(createTaskCard(task, key, allDayTasks.indexOf(task)));
+    });
+  }
+  return col;
+}
+
+function renderProjectSelect() {
+  const sel = document.getElementById('taskProject');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— без проекта —</option>';
+  projects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id; opt.textContent = p.name;
+    sel.appendChild(opt);
+  });
+  if (cur) sel.value = cur;
+}
+
+// ─── Task card ────────────────────────────────────────────────────────────────
+
+function createTaskCard(task, dayKey, idx) {
+  const card = document.createElement('div');
+  const tid  = task.id;
+  const timer = activeTimers[tid];
+  const isRunning = !!(timer?.startedAt);
+  const isDone    = task.done;
+
+  card.className = `task-card prio-${task.prio||'morning'}${isDone?' done':''}${isRunning?' in-progress':''}${task.delegated?' delegated':''}`;
+
+  const prioLabels = { morning:'Утро', day:'День', evening:'Вечер', high:'Утро', medium:'День', low:'Вечер' };
+  const prioColors = { morning:'var(--red)', day:'var(--amber)', evening:'var(--green)', high:'var(--red)', medium:'var(--amber)', low:'var(--green)' };
+  const prioDims   = { morning:'var(--red-dim)', day:'var(--amber-dim)', evening:'var(--green-dim)', high:'var(--red-dim)', medium:'var(--amber-dim)', low:'var(--green-dim)' };
+  const prio = task.prio || 'morning';
+  const prioChip = `<span class="proj-chip" style="background:${prioDims[prio]};color:${prioColors[prio]}">${prioLabels[prio]}</span>`;
+
+  const proj = task.project ? getProject(task.project) : null;
+  const projChip = proj
+    ? `<span class="proj-chip" style="background:${hexAlpha(proj.color,0.15)};color:${proj.color}"><span class="proj-chip-dot" style="background:${proj.color}"></span>${esc(proj.name)}</span>`
+    : '';
+
+  // Бейдж делегирования
+  let delegateChip = '';
+  if (task.delegated) {
+    const M = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+    const cd = new Date(task.delegated.checkDate + 'T00:00:00');
+    delegateChip = `<span class="delegate-chip" title="Проверка: ${cd.getDate()} ${M[cd.getMonth()]}${task.delegated.note ? ' · ' + task.delegated.note : ''}">→ ${esc(task.delegated.to)}</span>`;
+  }
+
+  const totalTaskMs = taskTotalMs(task);
+  let elapsedHtml = '';
+  if (isRunning) {
+    elapsedHtml = `<span class="task-elapsed running" data-id="${tid}">▶ ${formatElapsed(totalTaskMs)}</span>`;
+  } else if (totalTaskMs > 0) {
+    const icon = isDone ? '✓' : '⏱';
+    elapsedHtml = `<span class="task-elapsed finished">${icon} ${formatElapsed(totalTaskMs)}</span>`;
+  }
+
+  // Бейдж количества переносов
+  let movedChip = '';
+  if (task.movedCount > 0) {
+    movedChip = `<span class="moved-chip" title="Переносилась раз: ${task.movedCount}">↻ ${task.movedCount}</span>`;
+  }
+
+  card.innerHTML = `
+    <div class="task-title">${esc(task.title)}</div>
+    <div class="task-footer">
+      ${task.time ? `<span class="task-time">${esc(task.time)}</span>` : ''}
+      ${prioChip}${projChip}${delegateChip}${movedChip}${elapsedHtml}
+    </div>
+    <div class="task-btns">
+      <button class="task-btn task-btn-work" draggable="false" title="${isRunning?'Пауза':'В работу'}" style="color:${isRunning?'var(--accent)':'var(--muted2)'}">▶</button>
+      <button class="task-btn task-btn-done" draggable="false" title="Выполнено" style="color:${isDone?'white':'transparent'}">✓</button>
+    </div>
+  `;
+  card.querySelector('.task-btn-work').addEventListener('click', e => toggleWork(tid, dayKey, idx, e));
+  card.querySelector('.task-btn-done').addEventListener('click', e => toggleDone(dayKey, idx, e));
+  card.addEventListener('contextmenu', e => { e.preventDefault(); openModal(dayKey, idx); });
+
+  // Drag & drop — перетаскивание между днями
+  card.draggable = true;
+  card.addEventListener('dragstart', e => {
+    dragData = { fromKey: dayKey, taskId: task.id };
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  card.addEventListener('dragend', () => {
+    card.classList.remove('dragging');
+    dragData = null;
+    document.querySelectorAll('.day-col.drag-over, .rollover-btn.drag-over').forEach(el => el.classList.remove('drag-over'));
+  });
+
+  return card;
+}
+
+// ─── Task CRUD ────────────────────────────────────────────────────────────────
+
+// Таймеры (в памяти, не сохраняются в файл)
+const activeTimers = {};
+let timerTick = null;
+
+function formatElapsed(ms) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const h = Math.floor(m / 60);
+  if (h > 0) return `${h}ч ${m%60}м`;
+  if (m > 0) return `${m}м ${s%60}с`;
+  return `${s}с`;
+}
+
+// ─── Работа со временем задачи (раздельно по дням) ───────────────────────────
+// Модель: task.timeByDay = { "2026-06-01": ms, ... }
+// Обратная совместимость: старое task.elapsed трактуем как время дня, в котором задача лежит.
+
+function migrateTaskTime(task, dayKey) {
+  if (!task.timeByDay) {
+    task.timeByDay = {};
+    if (task.elapsed && task.elapsed > 0 && dayKey) {
+      task.timeByDay[dayKey] = task.elapsed;
+    }
+    delete task.elapsed;
+  }
+}
+
+// Общее время задачи за все дни (+ активный таймер если идёт)
+function taskTotalMs(task) {
+  let total = 0;
+  if (task.timeByDay) total += Object.values(task.timeByDay).reduce((a, b) => a + b, 0);
+  else if (task.elapsed) total += task.elapsed;  // на случай если ещё не мигрирована
+  const timer = activeTimers[task.id];
+  if (timer?.startedAt) total += Date.now() - timer.startedAt;
+  return total;
+}
+
+// Время задачи именно за конкретный день (+ активный таймер если он относится к этому дню)
+function taskDayMs(task, dayKey) {
+  let ms = 0;
+  if (task.timeByDay) ms = task.timeByDay[dayKey] || 0;
+  else if (task.elapsed) ms = task.elapsed;
+  const timer = activeTimers[task.id];
+  if (timer?.startedAt && timer.dayKey === dayKey) ms += Date.now() - timer.startedAt;
+  return ms;
+}
+
+function startTimerTick() {
+  if (timerTick) return;
+  timerTick = setInterval(() => {
+    // Таймеры на карточках — показывают ОБЩЕЕ время задачи
+    Object.keys(activeTimers).forEach(id => {
+      const t = activeTimers[id];
+      if (!t.startedAt) return;
+      const el = document.querySelector(`.task-elapsed[data-id="${id}"]`);
+      if (el) {
+        // Найдём задачу по id чтобы взять её полное время
+        let found = null;
+        for (const arr of Object.values(tasks)) {
+          const f = arr.find(x => x.id == id);
+          if (f) { found = f; break; }
+        }
+        if (found) el.textContent = '▶ ' + formatElapsed(taskTotalMs(found));
+      }
+    });
+    // Шапки колонок — время ТОЛЬКО за этот день
+    document.querySelectorAll('.day-total[data-key]').forEach(el => {
+      const key = el.dataset.key;
+      const dayTasks = tasks[key] || [];
+      const totalMs = dayTasks.reduce((sum, t) => sum + taskDayMs(t, key), 0);
+      el.textContent = totalMs > 0 ? '· ' + formatElapsed(totalMs) : '';
+    });
+    // Буфер — общее время
+    document.querySelectorAll('[data-buffer-elapsed]').forEach(el => {
+      const bid = el.dataset.bufferElapsed;
+      el.textContent = '⏱ ' + formatElapsed(getBufferTotalMs(bid));
+    });
+  }, 1000);
+}
+
+function stopTimerTickIfIdle() {
+  if (!Object.values(activeTimers).some(t => t.startedAt)) {
+    clearInterval(timerTick); timerTick = null;
+  }
+}
+
+function toggleWork(taskId, dayKey, idx, e) {
+  e.stopPropagation();
+  const task = tasks[dayKey]?.[idx];
+  if (!task || task.done) return;
+  migrateTaskTime(task, dayKey);
+
+  const t = activeTimers[taskId];
+  if (t?.startedAt) {
+    // Пауза: фиксируем наработанное в день, к которому привязан таймер
+    const delta = Date.now() - t.startedAt;
+    const dk = t.dayKey || dayKey;
+    task.timeByDay[dk] = (task.timeByDay[dk] || 0) + delta;
+    delete activeTimers[taskId];
+    stopTimerTickIfIdle();
+    saveToStorage();
+  } else {
+    // Старт: таймер привязан к текущему дню задачи
+    activeTimers[taskId] = { startedAt: Date.now(), dayKey };
+    startTimerTick();
+  }
+  render();
+}
+
+function toggleDone(dayKey, idx, e) {
+  if (e) e.stopPropagation();
+  if (!tasks[dayKey]) return;
+  const task = tasks[dayKey][idx];
+  migrateTaskTime(task, dayKey);
+  task.done = !task.done;
+  if (task.done) {
+    // Останавливаем таймер и фиксируем время в его день
+    const t = activeTimers[task.id];
+    if (t?.startedAt) {
+      const dk = t.dayKey || dayKey;
+      task.timeByDay[dk] = (task.timeByDay[dk] || 0) + (Date.now() - t.startedAt);
+    }
+    delete activeTimers[task.id];
+    stopTimerTickIfIdle();
+  }
+  // При снятии галочки время НЕ сбрасываем — оно накоплено по дням
+  saveToStorage(); render();
+}
+
+function openModal(dayKey, editIdx = null) {
+  selectedDay = dayKey; editingTask = editIdx;
+  renderProjectSelect();
+  if (editIdx !== null && tasks[dayKey]?.[editIdx]) {
+    const t = tasks[dayKey][editIdx];
+    document.getElementById('taskTitle').value   = t.title;
+    document.getElementById('taskTime').value    = t.time || '';
+    document.getElementById('taskProject').value = t.project || '';
+    selectedPrio = t.prio || 'morning';
+    document.getElementById('modalTitle').textContent  = 'Редактировать задачу';
+    document.getElementById('saveBtn').textContent     = 'Сохранить';
+    document.getElementById('deleteBtn').style.display = 'block';
+    // Показываем «На сегодня» только если задача не на сегодня
+    const todayKey = dateKey(new Date());
+    document.getElementById('moveToTodayBtn').style.display = (dayKey !== todayKey) ? 'block' : 'none';
+    document.getElementById('delegateBtn').style.display = 'block';
+    // «Сбросить таймер» — если есть накопленное время или активный таймер
+    const hasTime = taskTotalMs(t) > 0;
+    document.getElementById('resetTimerBtn').style.display = hasTime ? 'block' : 'none';
+  } else {
+    document.getElementById('taskTitle').value   = '';
+    document.getElementById('taskTime').value    = '';
+    document.getElementById('taskProject').value = activeProjectFilter || '';
+    selectedPrio = 'morning';
+    document.getElementById('modalTitle').textContent  = 'Новая задача';
+    document.getElementById('saveBtn').textContent     = 'Добавить';
+    document.getElementById('deleteBtn').style.display    = 'none';
+    document.getElementById('moveToTodayBtn').style.display = 'none';
+    document.getElementById('delegateBtn').style.display    = 'none';
+    document.getElementById('resetTimerBtn').style.display  = 'none';
+  }
+  setPrio(selectedPrio);
+  document.getElementById('modalBackdrop').classList.add('open');
+  setTimeout(() => document.getElementById('taskTitle').focus(), 80);
+}
+
+function moveToToday() {
+  if (editingTask === null) return;
+  const todayKey = dateKey(new Date());
+  if (selectedDay === todayKey) { closeModal(); return; }
+
+  const task = tasks[selectedDay][editingTask];
+  task.movedCount = (task.movedCount || 0) + 1;  // счётчик переносов
+  // Убираем из исходного дня
+  tasks[selectedDay].splice(editingTask, 1);
+  // Добавляем в сегодня
+  if (!tasks[todayKey]) tasks[todayKey] = [];
+  tasks[todayKey].push(task);
+
+  saveToStorage(); closeModal(); render();
+  showToast('✓ Задача перемещена на сегодня', 'success');
+}
+
+// Перемещение задачи между днями (drag & drop)
+function moveTaskToDay(fromKey, taskId, toKey) {
+  if (fromKey === toKey) return;
+  const arr = tasks[fromKey];
+  if (!arr) return;
+  const idx = arr.findIndex(t => t.id === taskId);
+  if (idx < 0) return;
+
+  const [task] = arr.splice(idx, 1);
+  task.movedCount = (task.movedCount || 0) + 1;
+  if (!tasks[toKey]) tasks[toKey] = [];
+  tasks[toKey].push(task);
+
+  saveToStorage(); render();
+}
+
+function closeModal() {
+  document.getElementById('modalBackdrop').classList.remove('open');
+  editingTask = null;
+}
+
+function setPrio(p) {
+  selectedPrio = p;
+  document.querySelectorAll('.prio-btn').forEach(b => {
+    b.className = 'prio-btn' + (b.dataset.prio === p ? ' active-' + p : '');
+  });
+}
+
+function saveTask() {
+  const title   = document.getElementById('taskTitle').value.trim();
+  const time    = document.getElementById('taskTime').value.trim();
+  const project = document.getElementById('taskProject').value || null;
+  if (!title) { document.getElementById('taskTitle').focus(); return; }
+  if (!tasks[selectedDay]) tasks[selectedDay] = [];
+  if (editingTask !== null) {
+    // Редактирование — сохраняем все служебные поля задачи
+    const existing = tasks[selectedDay][editingTask];
+    existing.title = title;
+    existing.time = time;
+    existing.prio = selectedPrio;
+    existing.project = project;
+  } else {
+    tasks[selectedDay].push({ title, time, prio: selectedPrio, project, done: false, id: Date.now(), timeByDay: {} });
+  }
+  saveToStorage(); closeModal(); render();
+}
+
+function deleteTask() {
+  if (editingTask === null) return;
+  tasks[selectedDay].splice(editingTask, 1);
+  saveToStorage(); closeModal(); render();
+}
+
+function resetTaskTimer() {
+  if (editingTask === null) return;
+  const task = tasks[selectedDay]?.[editingTask];
+  if (!task) return;
+  const total = taskTotalMs(task);
+  if (total === 0) return;
+
+  // Подтверждение, чтобы случайно не стереть время
+  if (!confirm(`Сбросить таймер задачи? (${formatElapsed(total)})`)) return;
+
+  // Останавливаем активный таймер и стираем всё накопленное время по дням
+  delete activeTimers[task.id];
+  task.timeByDay = {};
+  delete task.elapsed;
+  stopTimerTickIfIdle();
+
+  saveToStorage(); closeModal(); render();
+  showToast('⏱ Таймер сброшен', 'success');
+}
+
+// ─── Project CRUD ─────────────────────────────────────────────────────────────
+
+function openProjectModal(editId = null) {
+  editingProjectId = editId;
+  const p = editId ? getProject(editId) : null;
+  document.getElementById('projModalTitle').textContent = p ? 'Редактировать проект' : 'Новый проект';
+  document.getElementById('projName').value = p ? p.name : '';
+  selectedColor = p ? p.color : PROJECT_COLORS[0];
+  document.getElementById('projDeleteBtn').style.display = p ? 'block' : 'none';
+  renderColorPicker();
+  document.getElementById('projModalBackdrop').classList.add('open');
+  setTimeout(() => document.getElementById('projName').focus(), 80);
+}
+
+function closeProjModal() {
+  document.getElementById('projModalBackdrop').classList.remove('open');
+  editingProjectId = null;
+}
+
+function renderColorPicker() {
+  const wrap = document.getElementById('colorPicker');
+  wrap.innerHTML = '';
+  PROJECT_COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (c === selectedColor ? ' selected' : '');
+    sw.style.background = c;
+    sw.addEventListener('click', () => { selectedColor = c; renderColorPicker(); });
+    wrap.appendChild(sw);
+  });
+}
+
+function saveProject() {
+  const name = document.getElementById('projName').value.trim();
+  if (!name) { document.getElementById('projName').focus(); return; }
+  if (editingProjectId) {
+    const idx = projects.findIndex(p => p.id === editingProjectId);
+    if (idx >= 0) { projects[idx].name = name; projects[idx].color = selectedColor; }
+  } else {
+    projects.push({ id: 'p_' + Date.now(), name, color: selectedColor });
+  }
+  saveToStorage(); closeProjModal(); render();
+}
+
+function deleteProject(id) {
+  if (!confirm('Удалить проект? Задачи останутся, но потеряют привязку.')) return;
+  projects = projects.filter(p => p.id !== id);
+  Object.values(tasks).flat().forEach(t => { if (t.project === id) t.project = null; });
+  buffer.forEach(b => { if (b.project === id) b.project = null; });
+  if (activeProjectFilter === id) activeProjectFilter = null;
+  saveToStorage(); render();
+}
+
+// Удаление из окна редактирования проекта
+function deleteProjectFromModal() {
+  if (!editingProjectId) return;
+  const id = editingProjectId;
+  if (!confirm('Удалить проект? Задачи останутся, но потеряют привязку к проекту.')) return;
+  projects = projects.filter(p => p.id !== id);
+  Object.values(tasks).flat().forEach(t => { if (t.project === id) t.project = null; });
+  buffer.forEach(b => { if (b.project === id) b.project = null; });
+  if (activeProjectFilter === id) activeProjectFilter = null;
+  saveToStorage(); closeProjModal(); render();
+  showToast('Проект удалён', '');
+}
+
+// ─── Делегирование ────────────────────────────────────────────────────────────
+
+function openDelegateModal() {
+  // Предзаполняем дату — послезавтра по умолчанию
+  const d = new Date(); d.setDate(d.getDate() + 2);
+  document.getElementById('delegateDate').value = dateKey(d);
+  document.getElementById('delegateTo').value   = '';
+  document.getElementById('delegateNote').value = '';
+  document.getElementById('delegateModalBackdrop').classList.add('open');
+  setTimeout(() => document.getElementById('delegateTo').focus(), 80);
+}
+
+function closeDelegateModal() {
+  document.getElementById('delegateModalBackdrop').classList.remove('open');
+}
+
+function saveDelegate() {
+  const to   = document.getElementById('delegateTo').value.trim();
+  const date = document.getElementById('delegateDate').value;
+  const note = document.getElementById('delegateNote').value.trim();
+  if (!to)   { document.getElementById('delegateTo').focus();   return; }
+  if (!date) { document.getElementById('delegateDate').focus(); return; }
+
+  // Помечаем исходную задачу как делегированную
+  const task = tasks[selectedDay][editingTask];
+  task.delegated = { to, checkDate: date, note };
+
+  // Создаём задачу-напоминание на дату проверки
+  if (!tasks[date]) tasks[date] = [];
+  tasks[date].push({
+    id:      Date.now() + 1,
+    title:   `Проверить: «${task.title}» (${to})`,
+    time:    '',
+    prio:    task.prio || 'morning',
+    project: task.project || null,
+    done:    false,
+    timeByDay: {},
+    delegatedReminder: true,
+  });
+
+  saveToStorage();
+  closeDelegateModal();
+  closeModal();
+  render();
+
+  const M = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const d = new Date(date + 'T00:00:00');
+  showToast(`✓ Делегировано ${to} · напоминание ${d.getDate()} ${M[d.getMonth()]}`, 'success');
+}
+
+// ─── Rollover — перенос незавершённых на след. понедельник ───────────────────
+
+function getNextMonday() {
+  const dates = getWeekDates(currentWeekOffset);
+  // Следующий понедельник = понедельник текущей отображаемой недели + 7 дней
+  const nextMon = new Date(dates[0]);
+  nextMon.setDate(nextMon.getDate() + 7);
+  return nextMon;
+}
+
+function getPendingTasksForWeek() {
+  const dates = getWeekDates(currentWeekOffset);
+  const pending = [];
+  dates.forEach(date => {
+    const key = dateKey(date);
+    (tasks[key] || []).forEach((t, idx) => {
+      // Переносим только реально незавершённые задачи.
+      // Выполненные (t.done === true) остаются на месте.
+      if (t.done === true) return;
+      pending.push({ dayKey: key, idx, task: t });
+    });
+  });
+  return pending;
+}
+
+function openRolloverModal() {
+  const pending = getPendingTasksForWeek();
+  const nextMon = getNextMonday();
+  const M = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const nextMonLabel = `${nextMon.getDate()} ${M[nextMon.getMonth()]}`;
+
+  if (!pending.length) {
+    showToast('Нет незавершённых задач на этой неделе', '');
+    return;
+  }
+
+  document.getElementById('rolloverDesc').textContent =
+    `На этой неделе ${pending.length} незавершённых задач. Все они будут перемещены на понедельник ${nextMonLabel}.`;
+  document.getElementById('rolloverStep1').style.display = 'block';
+  document.getElementById('rolloverStep2').style.display = 'none';
+  document.getElementById('rolloverModalBackdrop').classList.add('open');
+}
+
+function rolloverStep2() {
+  document.getElementById('rolloverStep1').style.display = 'none';
+  document.getElementById('rolloverStep2').style.display = 'block';
+}
+
+function closeRolloverModal() {
+  document.getElementById('rolloverModalBackdrop').classList.remove('open');
+}
+
+function doRollover() {
+  const pending   = getPendingTasksForWeek();
+  const nextMon   = getNextMonday();
+  const targetKey = dateKey(nextMon);
+
+  if (!pending.length) { closeRolloverModal(); return; }
+  if (!tasks[targetKey]) tasks[targetKey] = [];
+
+  // Множество задач для переноса (по ссылке на объект)
+  const toMoveSet = new Set(pending.map(p => p.task));
+  const toMove    = pending.map(p => p.task);
+
+  // Увеличиваем счётчик переносов у каждой
+  toMove.forEach(t => { t.movedCount = (t.movedCount || 0) + 1; });
+
+  // Из каждого дня недели удаляем ТОЛЬКО незавершённые задачи,
+  // фильтрацией по ссылке — выполненные остаются нетронутыми.
+  const dates = getWeekDates(currentWeekOffset);
+  dates.forEach(date => {
+    const key = dateKey(date);
+    if (!tasks[key]) return;
+    tasks[key] = tasks[key].filter(t => !toMoveSet.has(t));
+  });
+
+  // Добавляем перенесённые задачи в следующий понедельник
+  tasks[targetKey].push(...toMove);
+
+  saveToStorage();
+  closeRolloverModal();
+
+  // Переключаемся на следующую неделю чтобы увидеть результат
+  currentWeekOffset++;
+  render();
+  showToast(`✓ ${toMove.length} незавершённых задач перенесено`, 'success');
+}
+
+// ─── Буфер ────────────────────────────────────────────────────────────────────
+
+function openBufferModal(editId = null) {
+  editingBufferId = editId;
+  // Заполняем select проектов
+  const sel = document.getElementById('bufferProject');
+  sel.innerHTML = '<option value="">— без проекта —</option>';
+  projects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id; opt.textContent = p.name;
+    sel.appendChild(opt);
+  });
+
+  if (editId) {
+    const item = buffer.find(b => b.id === editId);
+    if (!item) return;
+    document.getElementById('bufferModalTitle').textContent = 'Изменить задачу буфера';
+    document.getElementById('bufferTitle').value   = item.title;
+    document.getElementById('bufferProject').value = item.project || '';
+    document.getElementById('bufferSaveBtn').textContent = 'Сохранить';
+    document.getElementById('bufferDeleteBtn').style.display = 'block';
+  } else {
+    document.getElementById('bufferModalTitle').textContent = 'Добавить в буфер';
+    document.getElementById('bufferTitle').value = '';
+    document.getElementById('bufferProject').value = '';
+    document.getElementById('bufferSaveBtn').textContent = 'Добавить';
+    document.getElementById('bufferDeleteBtn').style.display = 'none';
+  }
+  document.getElementById('bufferModalBackdrop').classList.add('open');
+  setTimeout(() => document.getElementById('bufferTitle').focus(), 80);
+}
+
+function closeBufferModal() {
+  document.getElementById('bufferModalBackdrop').classList.remove('open');
+  editingBufferId = null;
+}
+
+function saveBufferItem() {
+  const title   = document.getElementById('bufferTitle').value.trim();
+  const project = document.getElementById('bufferProject').value || null;
+  if (!title) { document.getElementById('bufferTitle').focus(); return; }
+
+  if (editingBufferId) {
+    const idx = buffer.findIndex(b => b.id === editingBufferId);
+    if (idx >= 0) {
+      buffer[idx] = { ...buffer[idx], title, project };
+    }
+  } else {
+    buffer.push({ id: 'b_' + Date.now(), title, project, done: false });
+  }
+  saveToStorage(); closeBufferModal(); render();
+}
+
+function deleteBufferItem() {
+  if (!editingBufferId) return;
+  buffer = buffer.filter(b => b.id !== editingBufferId);
+  saveToStorage(); closeBufferModal(); render();
+}
+
+function toggleBufferDone(bufferId) {
+  const item = buffer.find(b => b.id === bufferId);
+  if (!item) return;
+
+  // Собираем всё накопленное время по всем копиям этой буфер-задачи в календаре
+  const totalElapsed = getBufferTotalMs(bufferId);
+
+  // Кладём задачу в сегодняшний день как выполненную
+  const todayKey = dateKey(new Date());
+  if (!tasks[todayKey]) tasks[todayKey] = [];
+  tasks[todayKey].push({
+    id:           Date.now(),
+    title:        item.title,
+    time:         '',
+    prio:         'morning',
+    project:      item.project || null,
+    done:         true,
+    timeByDay:    totalElapsed > 0 ? { [todayKey]: totalElapsed } : {},
+    bufferOrigin: bufferId,
+  });
+
+  // Убираем задачу из буфера
+  buffer = buffer.filter(b => b.id !== bufferId);
+
+  saveToStorage(); render();
+  showToast(`✓ «${item.title}» перенесена в выполненные`, 'success');
+}
+
+// Копировать задачу из буфера в сегодня (в буфере остаётся)
+function sendBufferToToday(bufferId) {
+  const item = buffer.find(b => b.id === bufferId);
+  if (!item) return;
+  const todayKey = dateKey(new Date());
+  if (!tasks[todayKey]) tasks[todayKey] = [];
+  tasks[todayKey].push({
+    id:           Date.now(),
+    title:        item.title,
+    time:         '',
+    prio:         item.prio || 'morning',
+    project:      item.project || null,
+    done:         false,
+    timeByDay:    {},
+    bufferOrigin: bufferId,  // ссылка на буфер для подсчёта суммарного времени
+  });
+  saveToStorage();
+  // Переключаемся на эту неделю чтобы было видно
+  currentWeekOffset = 0;
+  render();
+  showToast(`✓ «${item.title}» добавлена в сегодня`, 'success');
+}
+
+// Суммарное время по всем задачам, происходящим из буфера bufferId
+function getBufferTotalMs(bufferId) {
+  let total = 0;
+  Object.values(tasks).flat().forEach(t => {
+    if (t.bufferOrigin !== bufferId) return;
+    total += taskTotalMs(t);
+  });
+  return total;
+}
+
+// ─── Анализ недели через Claude API ──────────────────────────────────────────
+
+let anthropicKey = localStorage.getItem('weekplan_anthropic_key') || null;
+
+function openAnalyzeModal() {
+  document.getElementById('anthropicKey').value = anthropicKey || '';
+  // Сброс состояний
+  document.getElementById('analyzeSetup').style.display   = anthropicKey ? 'none' : 'block';
+  document.getElementById('analyzeLoading').style.display = 'none';
+  document.getElementById('analyzeResult').style.display  = 'none';
+  document.getElementById('analyzeRunBtn').style.display  = 'block';
+  document.getElementById('analyzeRunBtn').textContent    = 'Анализировать';
+  document.getElementById('analyzeModalBackdrop').classList.add('open');
+}
+
+function closeAnalyzeModal() {
+  document.getElementById('analyzeModalBackdrop').classList.remove('open');
+}
+
+// Собираем данные недели в текстовую сводку для Claude
+function buildWeekSummary() {
+  const dates = getWeekDates(currentWeekOffset);
+  const dayNames = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+  const prioNames = { morning:'утро', day:'день', evening:'вечер', high:'утро', medium:'день', low:'вечер' };
+  const lines = [];
+
+  dates.forEach((date, i) => {
+    const key = dateKey(date);
+    const dayTasks = tasks[key] || [];
+    if (!dayTasks.length) { lines.push(`${dayNames[i]}: задач нет`); return; }
+    lines.push(`${dayNames[i]} (${dayTasks.length} задач):`);
+    dayTasks.forEach(t => {
+      const proj = t.project ? getProject(t.project)?.name : null;
+      const parts = [];
+      parts.push(t.done ? '[выполнено]' : '[не выполнено]');
+      parts.push(prioNames[t.prio] || 'день');
+      if (proj) parts.push(`проект: ${proj}`);
+      const tms = taskTotalMs(t);
+      if (tms > 0) parts.push(`затрачено: ${formatElapsed(tms)}`);
+      if (t.delegated) parts.push(`делегировано: ${t.delegated.to}`);
+      lines.push(`  • ${t.title} (${parts.join(', ')})`);
+    });
+  });
+
+  // Сводная статистика
+  const all = dates.flatMap(d => tasks[dateKey(d)] || []);
+  const totalMs = all.reduce((s, t) => s + taskTotalMs(t), 0);
+  const projTime = {};
+  all.forEach(t => {
+    const tms = taskTotalMs(t);
+    if (tms > 0) {
+      const pn = t.project ? (getProject(t.project)?.name || 'без проекта') : 'без проекта';
+      projTime[pn] = (projTime[pn] || 0) + tms;
+    }
+  });
+
+  lines.push('');
+  lines.push('ИТОГО ЗА НЕДЕЛЮ:');
+  lines.push(`Всего задач: ${all.length}, выполнено: ${all.filter(t=>t.done).length}, не выполнено: ${all.filter(t=>!t.done).length}`);
+  lines.push(`Общее затраченное время: ${formatElapsed(totalMs)}`);
+  if (Object.keys(projTime).length) {
+    lines.push('Время по проектам:');
+    Object.entries(projTime).forEach(([p, ms]) => lines.push(`  ${p}: ${formatElapsed(ms)}`));
+  }
+  const delegated = all.filter(t => t.delegated);
+  if (delegated.length) lines.push(`Делегировано задач: ${delegated.length}`);
+
+  return lines.join('\n');
+}
+
+async function runAnalysis() {
+  const key = document.getElementById('anthropicKey').value.trim();
+  if (!key) { document.getElementById('anthropicKey').focus(); return; }
+  anthropicKey = key;
+  localStorage.setItem('weekplan_anthropic_key', key);
+
+  // Переключаем UI в режим загрузки
+  document.getElementById('analyzeSetup').style.display   = 'none';
+  document.getElementById('analyzeResult').style.display  = 'none';
+  document.getElementById('analyzeLoading').style.display = 'block';
+  document.getElementById('analyzeRunBtn').style.display  = 'none';
+
+  const summary = buildWeekSummary();
+  const prompt = `Ты — опытный консультант по продуктивности и тайм-менеджменту. Проанализируй мою рабочую неделю и дай конкретные практические советы по оптимизации времени.
+
+Вот данные недели:
+
+${summary}
+
+Дай анализ по следующей структуре:
+1. **Общая картина** — 2-3 предложения о том, как прошла неделя
+2. **Что съедает время** — какие проекты или типы задач занимают непропорционально много времени
+3. **Конкретные рекомендации** — 3-5 практических советов. Где уместно — советуй делегировать или нанять сотрудника, сократить или объединить встречи, убрать низкоприоритетные задачи, перераспределить нагрузку по дням. Будь конкретным и ссылайся на реальные задачи из данных.
+4. **Фокус на следующую неделю** — одна главная рекомендация
+
+Отвечай на русском, по делу, без воды. Используй markdown.`;
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!r.ok) {
+      const errText = await r.text();
+      throw new Error(r.status === 401 ? 'Неверный API-ключ' : `Ошибка API (${r.status})`);
+    }
+
+    const data = await r.json();
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+
+    document.getElementById('analyzeContent').innerHTML = renderMarkdown(text);
+    document.getElementById('analyzeLoading').style.display = 'none';
+    document.getElementById('analyzeResult').style.display  = 'block';
+    document.getElementById('analyzeRunBtn').style.display  = 'block';
+    document.getElementById('analyzeRunBtn').textContent    = 'Повторить';
+  } catch (e) {
+    document.getElementById('analyzeLoading').style.display = 'none';
+    document.getElementById('analyzeContent').innerHTML =
+      `<div style="color:var(--red)">⚠ ${esc(e.message)}</div>` +
+      `<div style="color:var(--muted);font-size:12px;margin-top:8px">Проверьте API-ключ и подключение к интернету.</div>`;
+    document.getElementById('analyzeResult').style.display = 'block';
+    document.getElementById('analyzeSetup').style.display  = 'block';
+    document.getElementById('analyzeRunBtn').style.display = 'block';
+    document.getElementById('analyzeRunBtn').textContent   = 'Повторить';
+  }
+}
+
+// Простой markdown → HTML рендер (заголовки, списки, жирный)
+function renderMarkdown(md) {
+  const lines = md.split('\n');
+  let html = '', inList = false;
+  for (let line of lines) {
+    line = esc(line)
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>');
+    if (/^####?\s/.test(line)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<h4 style="margin:14px 0 6px;font-size:13px;color:var(--accent)">${line.replace(/^#+\s/, '')}</h4>`;
+    } else if (/^\d+\.\s/.test(line)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<div style="margin:10px 0 4px;font-weight:600">${line}</div>`;
+    } else if (/^[-•]\s/.test(line)) {
+      if (!inList) { html += '<ul style="margin:4px 0;padding-left:18px">'; inList = true; }
+      html += `<li style="margin:3px 0">${line.replace(/^[-•]\s/, '')}</li>`;
+    } else if (line.trim() === '') {
+      if (inList) { html += '</ul>'; inList = false; }
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<p style="margin:6px 0">${line}</p>`;
+    }
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+
+// ─── Filters & Nav ────────────────────────────────────────────────────────────
+
+function setFilter(f) {
+  activeFilter = f;
+  ['filterAll','filterActive','filterDone'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1)).classList.add('active');
+  renderBoard();
+}
+
+document.getElementById('prevWeek').addEventListener('click', () => { currentWeekOffset--; render(); });
+document.getElementById('nextWeek').addEventListener('click', () => { currentWeekOffset++; render(); });
+document.getElementById('todayBtn').addEventListener('click', () => { currentWeekOffset = 0; render(); });
+
+// Стрелки недели — drop-зоны для переноса задачи на другую неделю (тот же день недели)
+function setupWeekDropZone(btnId, weekDelta) {
+  const btn = document.getElementById(btnId);
+  btn.addEventListener('dragover', e => {
+    if (!dragData) return;
+    e.preventDefault();
+    btn.classList.add('drag-over');
+  });
+  btn.addEventListener('dragleave', () => btn.classList.remove('drag-over'));
+  btn.addEventListener('drop', e => {
+    e.preventDefault();
+    btn.classList.remove('drag-over');
+    if (!dragData) return;
+    // Целевой день = тот же день недели, но на неделю раньше/позже
+    const fromDate = new Date(dragData.fromKey + 'T00:00:00');
+    fromDate.setDate(fromDate.getDate() + weekDelta * 7);
+    const toKey = dateKey(fromDate);
+    moveTaskToDay(dragData.fromKey, dragData.taskId, toKey);
+    showToast(weekDelta > 0 ? '✓ Перенесено на следующую неделю' : '✓ Перенесено на прошлую неделю', 'success');
+  });
+}
+setupWeekDropZone('prevWeek', -1);
+setupWeekDropZone('nextWeek', 1);
+
+document.getElementById('delegateModalBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeDelegateModal(); });
+document.getElementById('bufferModalBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeBufferModal(); });
+document.getElementById('analyzeModalBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeAnalyzeModal(); });
+document.getElementById('modalBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+document.getElementById('projModalBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeProjModal(); });
+document.getElementById('rolloverModalBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeRolloverModal(); });
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeProjModal(); closeRolloverModal(); closeDelegateModal(); closeBufferModal(); closeCloudModal(); closeAnalyzeModal(); }
+  if (e.key === 'Enter' && e.ctrlKey) {
+    if (document.getElementById('modalBackdrop').classList.contains('open')) saveTask();
+    if (document.getElementById('projModalBackdrop').classList.contains('open')) saveProject();
+  }
+  // Cmd/Ctrl+S — быстрое сохранение
+  if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); exportData(); }
+});
+
+// ─── Тема ─────────────────────────────────────────────────────────────────────
+
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('weekplan_theme', isLight ? 'light' : 'dark');
+  document.getElementById('themeToggle').textContent = isLight ? '🌙' : '☀';
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('weekplan_theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    document.getElementById('themeToggle').textContent = '🌙';
+  }
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
+initTheme();
+loadFromStorage();
+render();
+
+// Облако: восстанавливаем подключение и запускаем синхронизацию
+restoreFileSync();
+
+// Закрытие модала настройки облака
+document.getElementById('cloudModalBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeCloudModal(); });
+
+// ─── PWA: регистрация service worker ──────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
