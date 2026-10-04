@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<!-- WeekPlan v4.4 | 2026-10-05 -->
+<!-- WeekPlan v4.5 | 2026-10-05 -->
 <title>WeekPlan</title>
 
 <!-- PWA -->
@@ -783,7 +783,7 @@
 <script>
 // ─── Константы ────────────────────────────────────────────────────────────────
 
-const APP_VERSION     = 'v4.4';
+const APP_VERSION     = 'v4.5';
 const STORAGE_KEY     = 'weekplan_data';
 const EXPORT_FILENAME = 'weekplan-tasks.json';
 
@@ -1029,8 +1029,36 @@ function schedulePush() {
 function startPolling() {
   clearInterval(pullTimer);
   if (cloudConfigured()) {
-    pullTimer = setInterval(() => pullFromCloud(true), CLOUD_POLL_MS);
+    pullTimer = setInterval(() => { pullFromCloud(true); drainInbox(); }, CLOUD_POLL_MS);
   }
+}
+
+// Приёмник быстрых задач с телефона (таблица weekplan_inbox).
+// Shortcut на iPhone просто делает POST в неё — здесь мы забираем строки в буфер.
+let isDraining = false;
+async function drainInbox() {
+  if (!cloudConfigured() || isDraining) return;
+  isDraining = true;
+  try {
+    const url = sbUrl + '/rest/v1/weekplan_inbox?sync_code=eq.'
+              + encodeURIComponent(sbCode) + '&select=id,text&order=created_at.asc';
+    const r = await fetch(url, { headers: sbHeaders() });
+    if (!r.ok) return;                 // нет таблицы — тихо выходим
+    const rows = await r.json();
+    if (!rows.length) return;
+    rows.forEach(row => {
+      const t = (row.text || '').trim();
+      if (t) buffer.push({ id: 'b_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), title: t, project: null, done: false });
+    });
+    // Удаляем забранные строки из приёмника
+    const ids = rows.map(r => r.id).join(',');
+    await fetch(sbUrl + '/rest/v1/weekplan_inbox?id=in.(' + ids + ')',
+      { method: 'DELETE', headers: sbHeaders() });
+    saveToStorage();                   // сохранит и отправит в облако
+    render();
+    showToast(`✓ Из телефона: ${rows.length} задач${rows.length===1?'а':''} в буфере`, 'success');
+  } catch {}
+  finally { isDraining = false; }
 }
 
 // ─── UI облачной синхронизации ────────────────────────────────────────────────
@@ -1132,6 +1160,7 @@ async function connectCloud() {
       await pushToCloud();
     }
     startPolling();
+    drainInbox();
     closeCloudModal();
     showToast('✓ Облако подключено', 'success');
   } catch (e) {
@@ -1159,10 +1188,11 @@ async function restoreFileSync() {
   if (!cloudConfigured()) { setSyncStatus(null); return; }
   setSyncStatus('syncing');
   await pullFromCloud();
+  await drainInbox();
   startPolling();
   // Досинхронизация при возвращении в приложение (важно для PWA на телефоне)
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && cloudConfigured()) pullFromCloud(true);
+    if (document.visibilityState === 'visible' && cloudConfigured()) { pullFromCloud(true); drainInbox(); }
   });
 }
 
