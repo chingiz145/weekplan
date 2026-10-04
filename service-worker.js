@@ -1,5 +1,5 @@
 // WeekPlan Service Worker — офлайн-режим и установка как приложение
-const CACHE = 'weekplan-v4-3';
+const CACHE = 'weekplan-v4-4';
 
 // Файлы оболочки приложения (кэшируются для работы офлайн)
 const SHELL = [

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<!-- WeekPlan v4.3 | 2026-10-04 -->
+<!-- WeekPlan v4.4 | 2026-10-05 -->
 <title>WeekPlan</title>
 
 <!-- PWA -->
@@ -145,7 +145,7 @@
   }
   .sidebar-header {
     padding: 13px 13px 9px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between; gap: 7px;
   }
   .sidebar-title { font-family: 'Unbounded', sans-serif; font-size: 8px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--muted); }
   .sidebar-add-btn {
@@ -193,6 +193,65 @@
   .buffer-item.done .buffer-done-btn { background: var(--green); border-color: var(--green); color: white; }
 
   .buffer-empty { padding: 16px 8px; text-align: center; font-size: 10px; color: var(--muted2); font-style: italic; }
+
+  /* Переключатель панели */
+  .panel-toggle { display: flex; gap: 2px; background: var(--surface2); border-radius: 7px; padding: 2px; flex: 1; }
+  .panel-tab {
+    flex: 1; padding: 5px 4px; border: none; background: transparent; color: var(--muted);
+    font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600; cursor: pointer;
+    border-radius: 5px; transition: all 0.12s; white-space: nowrap;
+  }
+  .panel-tab.active { background: var(--surface); color: var(--text); }
+
+  /* Большие задачи */
+  .bigtasks-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .big-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .big-head {
+    display: flex; align-items: center; gap: 7px; padding: 8px 9px; cursor: pointer; position: relative;
+  }
+  .big-head:hover { background: var(--surface3); }
+  .big-caret { font-size: 9px; color: var(--muted2); width: 8px; flex-shrink: 0; transition: transform 0.15s; }
+  .big-item.collapsed .big-caret { transform: rotate(-90deg); }
+  .big-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+  .big-name { font-size: 12px; font-weight: 600; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .big-progress { font-size: 10px; font-weight: 600; color: var(--muted); background: var(--surface); padding: 1px 6px; border-radius: 10px; flex-shrink: 0; }
+  .big-progress.complete { color: var(--green); }
+  .big-sublist { padding: 2px 8px 8px; display: flex; flex-direction: column; gap: 3px; }
+  .big-item.collapsed .big-sublist { display: none; }
+
+  .subrow {
+    display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 6px;
+    background: var(--surface); position: relative; cursor: grab;
+  }
+  .subrow.dragging { opacity: 0.4; }
+  .subrow.drop-above { box-shadow: inset 0 2px 0 var(--accent); }
+  .subrow.drop-below { box-shadow: inset 0 -2px 0 var(--accent); }
+  .sub-check {
+    width: 15px; height: 15px; border-radius: 50%; border: 1px solid var(--border2); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 8px; color: transparent; cursor: pointer;
+  }
+  .subrow.done .sub-check { background: var(--green); border-color: var(--green); color: white; }
+  .sub-title { font-size: 11px; color: var(--text); flex: 1; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .subrow.done .sub-title { text-decoration: line-through; color: var(--muted); }
+  .subrow.scheduled .sub-title { color: var(--muted); }
+  .sub-send {
+    width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0;
+    background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent);
+    font-size: 12px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.12s;
+  }
+  .subrow:hover .sub-send { opacity: 1; }
+  .sub-send:hover { background: var(--accent); color: white; }
+  .sub-del { position: absolute; right: 28px; width: 16px; height: 16px; border: none; background: transparent; color: var(--red); font-size: 13px; cursor: pointer; opacity: 0; display: flex; align-items: center; justify-content: center; }
+  .subrow:hover .sub-del { opacity: 1; }
+  .sub-add-input {
+    width: 100%; background: var(--surface); border: 1px dashed var(--border2); border-radius: 6px;
+    padding: 5px 8px; color: var(--text); font-size: 11px; font-family: 'Inter', sans-serif; outline: none; margin-top: 2px;
+  }
+  .sub-add-input:focus { border-color: var(--accent); border-style: solid; }
+
+  /* Точка большой задачи на карточке дня */
+  .big-chip-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; display: inline-block; margin-right: 5px; vertical-align: middle; }
 
   .proj-item {
     display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 7px;
@@ -462,12 +521,16 @@
 
   <div class="sidebar">
     <div class="sidebar-header">
-      <span class="sidebar-title">Буфер</span>
-      <button class="sidebar-add-btn" onclick="openBufferModal()" title="Добавить в буфер">+</button>
+      <div class="panel-toggle">
+        <button class="panel-tab active" id="tabBig"    onclick="setPanel('big')">Большие</button>
+        <button class="panel-tab"        id="tabBuffer" onclick="setPanel('buffer')">Буфер</button>
+      </div>
+      <button class="sidebar-add-btn" id="panelAddBtn" onclick="panelAdd()" title="Добавить">+</button>
     </div>
-    <div class="buffer-list" id="bufferList"></div>
+    <div class="bigtasks-list" id="bigList"></div>
+    <div class="buffer-list" id="bufferList" style="display:none"></div>
     <div class="sidebar-stats">
-      <div class="s-stat"><span>В буфере</span><span class="s-stat-val" id="statBuffer">0</span></div>
+      <div class="s-stat"><span id="statPanelLabel">Больших задач</span><span class="s-stat-val" id="statBuffer">0</span></div>
       <div class="s-stat"><span>Всего задач</span><span class="s-stat-val" id="statTotal">0</span></div>
       <div class="s-stat"><span>Выполнено</span><span class="s-stat-val"  id="statDone">0</span></div>
     </div>
@@ -606,7 +669,29 @@
   </div>
 </div>
 
+<!-- Big Task Modal -->
+<div class="modal-backdrop" id="bigModalBackdrop">
+  <div class="modal">
+    <h3 id="bigModalTitle">Новая большая задача</h3>
+    <div class="form-group">
+      <label class="form-label">Название</label>
+      <input type="text" class="form-control" id="bigName" placeholder="Например: Запустить промпарк">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Цвет</label>
+      <div class="color-picker" id="bigColorPicker"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost"   onclick="closeBigTaskModal()">Отмена</button>
+      <button class="btn btn-danger"  id="bigDeleteBtn" style="display:none" onclick="deleteBigTask()">Удалить</button>
+      <button class="btn btn-primary" onclick="saveBigTask()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <!-- Cloud Sync Modal (Supabase) -->
+
+<!-- Big Task Modal (placeholder anchor) -->
 <div class="modal-backdrop" id="cloudModalBackdrop">
   <div class="modal" style="max-width:460px">
     <h3>Облачная синхронизация</h3>
@@ -698,7 +783,7 @@
 <script>
 // ─── Константы ────────────────────────────────────────────────────────────────
 
-const APP_VERSION     = 'v4.3';
+const APP_VERSION     = 'v4.4';
 const STORAGE_KEY     = 'weekplan_data';
 const EXPORT_FILENAME = 'weekplan-tasks.json';
 
@@ -723,6 +808,10 @@ const DEFAULT_PROJECTS = [
 let tasks               = {};
 let projects            = [...DEFAULT_PROJECTS];
 let buffer              = [];   // [{ id, title, project, prio }]
+let bigTasks            = [];   // [{ id, name, color, collapsed, subtasks:[{id,title,done}] }]
+let panelMode           = 'big';   // 'big' | 'buffer'
+let editingBigId        = null;
+let selectedBigColor    = '#7f77dd';
 let currentWeekOffset   = 0;
 let editingTask         = null;
 let selectedDay         = null;
@@ -808,12 +897,13 @@ function loadFromStorage() {
     tasks    = d.tasks    || {};
     projects = d.projects || DEFAULT_PROJECTS;
     buffer   = d.buffer   || [];
+    bigTasks = d.bigTasks || [];
     return true;
   } catch { return false; }
 }
 
 function saveToStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, projects, buffer }));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, projects, buffer, bigTasks }));
   markUnsaved();
   schedulePush();
 }
@@ -868,7 +958,7 @@ async function pushToCloud() {
   isPushing = true;
   setSyncStatus('syncing');
   try {
-    const payload = { tasks, projects, buffer };
+    const payload = { tasks, projects, buffer, bigTasks };
     const body = [{
       sync_code:  sbCode,
       payload:    payload,
@@ -909,8 +999,9 @@ async function pullFromCloud(silent = false) {
         tasks    = rec.tasks    || {};
         projects = rec.projects || DEFAULT_PROJECTS;
         buffer   = rec.buffer   || [];
+        bigTasks = rec.bigTasks || [];
         lastCloudHash = newHash;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, projects, buffer }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, projects, buffer, bigTasks }));
         render();
       }
     }
@@ -1078,7 +1169,7 @@ async function restoreFileSync() {
 // ─── Экспорт (скачать файл) ───────────────────────────────────────────────────
 
 function exportData() {
-  const payload = JSON.stringify({ tasks, projects, buffer }, null, 2);
+  const payload = JSON.stringify({ tasks, projects, buffer, bigTasks }, null, 2);
   const blob    = new Blob([payload], { type: 'application/json' });
   const url     = URL.createObjectURL(blob);
   const a       = document.createElement('a');
@@ -1103,7 +1194,8 @@ function importData(event) {
       tasks    = d.tasks    || {};
       projects = d.projects || DEFAULT_PROJECTS;
       buffer   = d.buffer   || [];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, projects, buffer }));
+      bigTasks = d.bigTasks || [];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, projects, buffer, bigTasks }));
       hasUnsavedChanges = false;
       document.getElementById('saveDot').className = 'save-dot';
       render();
@@ -1135,9 +1227,26 @@ window.addEventListener('beforeunload', e => {
 
 function render() {
   renderSidebar();
+  renderBigTasks();
   renderBoard();
   renderProjFilterChips();
   renderProjectSelect();
+}
+
+function setPanel(which) {
+  panelMode = which;
+  document.getElementById('tabBig').classList.toggle('active', which === 'big');
+  document.getElementById('tabBuffer').classList.toggle('active', which === 'buffer');
+  document.getElementById('bigList').style.display    = which === 'big'    ? 'flex' : 'none';
+  document.getElementById('bufferList').style.display = which === 'buffer' ? 'flex' : 'none';
+  document.getElementById('panelAddBtn').title = which === 'big' ? 'Новая большая задача' : 'Добавить в буфер';
+  document.getElementById('statPanelLabel').textContent = which === 'big' ? 'Больших задач' : 'В буфере';
+  document.getElementById('statBuffer').textContent = which === 'big' ? bigTasks.length : buffer.length;
+}
+
+function panelAdd() {
+  if (panelMode === 'big') openBigTaskModal();
+  else openBufferModal();
 }
 
 function renderSidebar() {
@@ -1181,9 +1290,191 @@ function renderSidebar() {
     });
   }
 
-  document.getElementById('statBuffer').textContent = buffer.length;
+  document.getElementById('statBuffer').textContent = panelMode === 'big' ? bigTasks.length : buffer.length;
   document.getElementById('statTotal').textContent  = total;
   document.getElementById('statDone').textContent   = done;
+}
+
+// ─── Большие задачи (эпики с подзадачами) ─────────────────────────────────────
+
+function getBigTask(id) { return bigTasks.find(b => b.id === id) || null; }
+
+function renderBigTasks() {
+  const list = document.getElementById('bigList');
+  list.innerHTML = '';
+  if (!bigTasks.length) {
+    list.innerHTML = '<div class="buffer-empty">нет больших задач</div>';
+    return;
+  }
+  bigTasks.forEach(big => {
+    const total = big.subtasks.length;
+    const done  = big.subtasks.filter(s => s.done).length;
+    const item = document.createElement('div');
+    item.className = 'big-item' + (big.collapsed ? ' collapsed' : '');
+
+    const head = document.createElement('div');
+    head.className = 'big-head';
+    head.innerHTML = `
+      <span class="big-caret">▼</span>
+      <span class="big-dot" style="background:${big.color}"></span>
+      <span class="big-name">${esc(big.name)}</span>
+      <span class="big-progress${total && done === total ? ' complete' : ''}">${done}/${total}</span>
+    `;
+    head.addEventListener('click', () => { big.collapsed = !big.collapsed; saveToStorage(); renderBigTasks(); });
+    head.addEventListener('dblclick', e => { e.stopPropagation(); openBigTaskModal(big.id); });
+    item.appendChild(head);
+
+    const sub = document.createElement('div');
+    sub.className = 'big-sublist';
+    big.subtasks.forEach((st, idx) => sub.appendChild(makeSubRow(big, st, idx)));
+
+    // поле добавления подзадачи
+    const inp = document.createElement('input');
+    inp.className = 'sub-add-input';
+    inp.placeholder = '+ подзадача, Enter';
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && inp.value.trim()) {
+        big.subtasks.push({ id: 's_' + Date.now(), title: inp.value.trim(), done: false });
+        saveToStorage(); renderBigTasks();
+      }
+    });
+    sub.appendChild(inp);
+    item.appendChild(sub);
+    list.appendChild(item);
+  });
+}
+
+function makeSubRow(big, st, idx) {
+  const row = document.createElement('div');
+  row.className = 'subrow' + (st.done ? ' done' : '') + (st.scheduled && !st.done ? ' scheduled' : '');
+  row.draggable = true;
+  row.innerHTML = `
+    <span class="sub-check">${st.done ? '✓' : ''}</span>
+    <span class="sub-title">${esc(st.title)}</span>
+    <button class="sub-del" title="Удалить">×</button>
+    <button class="sub-send" title="Отправить в сегодня">+</button>
+  `;
+  row.querySelector('.sub-check').addEventListener('click', e => { e.stopPropagation(); setSubtaskDone(big.id, st.id, !st.done); });
+  row.querySelector('.sub-del').addEventListener('click', e => { e.stopPropagation(); deleteSubtask(big.id, st.id); });
+  row.querySelector('.sub-send').addEventListener('click', e => { e.stopPropagation(); sendSubtaskToDay(big.id, st.id); });
+  row.querySelector('.sub-title').addEventListener('dblclick', e => {
+    e.stopPropagation();
+    const nv = prompt('Изменить подзадачу:', st.title);
+    if (nv && nv.trim()) { st.title = nv.trim(); saveToStorage(); renderBigTasks(); }
+  });
+
+  // drag-reorder внутри этой большой задачи
+  row.addEventListener('dragstart', e => { e.stopPropagation(); subDrag = { bigId: big.id, subId: st.id }; row.classList.add('dragging'); });
+  row.addEventListener('dragend',   () => { row.classList.remove('dragging'); document.querySelectorAll('.subrow').forEach(r => r.classList.remove('drop-above','drop-below')); subDrag = null; });
+  row.addEventListener('dragover',  e => {
+    if (!subDrag || subDrag.bigId !== big.id) return;
+    e.preventDefault();
+    const r = row.getBoundingClientRect();
+    const below = e.clientY > r.top + r.height / 2;
+    row.classList.toggle('drop-below', below);
+    row.classList.toggle('drop-above', !below);
+  });
+  row.addEventListener('dragleave', () => row.classList.remove('drop-above','drop-below'));
+  row.addEventListener('drop', e => {
+    if (!subDrag || subDrag.bigId !== big.id) return;
+    e.preventDefault();
+    const r = row.getBoundingClientRect();
+    const below = e.clientY > r.top + r.height / 2;
+    reorderSubtask(big.id, subDrag.subId, st.id, below);
+  });
+  return row;
+}
+
+let subDrag = null;
+
+function reorderSubtask(bigId, movingId, targetId, below) {
+  const big = getBigTask(bigId); if (!big) return;
+  const from = big.subtasks.findIndex(s => s.id === movingId);
+  if (from < 0) return;
+  const [moved] = big.subtasks.splice(from, 1);
+  let to = big.subtasks.findIndex(s => s.id === targetId);
+  if (to < 0) { big.subtasks.push(moved); }
+  else { if (below) to += 1; big.subtasks.splice(to, 0, moved); }
+  saveToStorage(); renderBigTasks();
+}
+
+// Отметить подзадачу выполненной + синхронизировать с её карточками в днях
+function setSubtaskDone(bigId, subId, done) {
+  const big = getBigTask(bigId); if (!big) return;
+  const st = big.subtasks.find(s => s.id === subId); if (!st) return;
+  st.done = done;
+  // Обновляем связанные задачи-карточки в днях
+  Object.values(tasks).flat().forEach(t => {
+    if (t.bigTaskId === bigId && t.bigSubId === subId) t.done = done;
+  });
+  saveToStorage(); render();
+}
+
+function deleteSubtask(bigId, subId) {
+  const big = getBigTask(bigId); if (!big) return;
+  big.subtasks = big.subtasks.filter(s => s.id !== subId);
+  saveToStorage(); renderBigTasks();
+}
+
+// Отправить подзадачу в сегодняшний день (в списке большой задачи остаётся)
+function sendSubtaskToDay(bigId, subId) {
+  const big = getBigTask(bigId); if (!big) return;
+  const st = big.subtasks.find(s => s.id === subId); if (!st) return;
+  const todayKey = dateKey(new Date());
+  if (!tasks[todayKey]) tasks[todayKey] = [];
+  tasks[todayKey].push({
+    id: Date.now(), title: st.title, time: '', prio: 'morning',
+    project: null, done: false, timeByDay: {},
+    bigTaskId: bigId, bigSubId: subId,
+  });
+  st.scheduled = true;
+  currentWeekOffset = 0;
+  saveToStorage(); render();
+  showToast(`✓ «${st.title}» добавлена в сегодня`, 'success');
+}
+
+// ─── Большая задача: модалка ──────────────────────────────────────────────────
+
+function openBigTaskModal(editId = null) {
+  editingBigId = editId;
+  const b = editId ? getBigTask(editId) : null;
+  document.getElementById('bigModalTitle').textContent = b ? 'Большая задача' : 'Новая большая задача';
+  document.getElementById('bigName').value = b ? b.name : '';
+  selectedBigColor = b ? b.color : PROJECT_COLORS[0];
+  document.getElementById('bigDeleteBtn').style.display = b ? 'block' : 'none';
+  renderBigColorPicker();
+  document.getElementById('bigModalBackdrop').classList.add('open');
+  setTimeout(() => document.getElementById('bigName').focus(), 80);
+}
+function closeBigTaskModal() { document.getElementById('bigModalBackdrop').classList.remove('open'); editingBigId = null; }
+function renderBigColorPicker() {
+  const wrap = document.getElementById('bigColorPicker'); wrap.innerHTML = '';
+  PROJECT_COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (c === selectedBigColor ? ' selected' : '');
+    sw.style.background = c;
+    sw.addEventListener('click', () => { selectedBigColor = c; renderBigColorPicker(); });
+    wrap.appendChild(sw);
+  });
+}
+function saveBigTask() {
+  const name = document.getElementById('bigName').value.trim();
+  if (!name) { document.getElementById('bigName').focus(); return; }
+  if (editingBigId) {
+    const b = getBigTask(editingBigId);
+    if (b) { b.name = name; b.color = selectedBigColor; }
+  } else {
+    bigTasks.push({ id: 'B_' + Date.now(), name, color: selectedBigColor, collapsed: false, subtasks: [] });
+  }
+  saveToStorage(); closeBigTaskModal(); render();
+}
+function deleteBigTask() {
+  if (!editingBigId) return;
+  if (!confirm('Удалить большую задачу? Подзадачи внутри неё тоже удалятся. Карточки, уже стоящие в днях, останутся.')) return;
+  // Снимаем привязку у карточек в днях
+  Object.values(tasks).flat().forEach(t => { if (t.bigTaskId === editingBigId) { t.bigTaskId = null; t.bigSubId = null; } });
+  bigTasks = bigTasks.filter(b => b.id !== editingBigId);
+  saveToStorage(); closeBigTaskModal(); render();
 }
 
 function renderProjFilterChips() {
@@ -1370,8 +1661,15 @@ function createTaskCard(task, dayKey, idx) {
     movedChip = `<span class="moved-chip" title="Переносилась раз: ${task.movedCount}">↻ ${task.movedCount}</span>`;
   }
 
+  // Точка большой задачи (только цвет, без текста)
+  let bigDot = '';
+  if (task.bigTaskId) {
+    const bt = getBigTask(task.bigTaskId);
+    if (bt) bigDot = `<span class="big-chip-dot" style="background:${bt.color}" title="${esc(bt.name)}"></span>`;
+  }
+
   card.innerHTML = `
-    <div class="task-title">${esc(task.title)}</div>
+    <div class="task-title">${bigDot}${esc(task.title)}</div>
     <div class="task-footer">
       ${task.time ? `<span class="task-time">${esc(task.time)}</span>` : ''}
       ${prioChip}${projChip}${delegateChip}${movedChip}${elapsedHtml}
@@ -1529,6 +1827,12 @@ function toggleDone(dayKey, idx, e) {
     stopTimerTickIfIdle();
   }
   // При снятии галочки время НЕ сбрасываем — оно накоплено по дням
+  // Синхронизируем статус с подзадачей большой задачи
+  if (task.bigTaskId && task.bigSubId) {
+    const bt = getBigTask(task.bigTaskId);
+    const st = bt && bt.subtasks.find(s => s.id === task.bigSubId);
+    if (st) st.done = task.done;
+  }
   saveToStorage(); render();
 }
 
@@ -2192,7 +2496,7 @@ document.getElementById('projModalBackdrop').addEventListener('click', e => { if
 document.getElementById('rolloverModalBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeRolloverModal(); });
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeProjModal(); closeRolloverModal(); closeDelegateModal(); closeBufferModal(); closeCloudModal(); closeAnalyzeModal(); }
+  if (e.key === 'Escape') { closeModal(); closeProjModal(); closeRolloverModal(); closeDelegateModal(); closeBufferModal(); closeCloudModal(); closeAnalyzeModal(); closeBigTaskModal(); }
   if (e.key === 'Enter' && e.ctrlKey) {
     if (document.getElementById('modalBackdrop').classList.contains('open')) saveTask();
     if (document.getElementById('projModalBackdrop').classList.contains('open')) saveProject();
@@ -2224,13 +2528,15 @@ initTheme();
 document.getElementById('appVersion').textContent = APP_VERSION;
 document.title = 'WeekPlan ' + APP_VERSION;
 loadFromStorage();
+setPanel('big');
 render();
 
 // Облако: восстанавливаем подключение и запускаем синхронизацию
 restoreFileSync();
 
-// Закрытие модала настройки облака
+// Закрытие модалов по клику на фон
 document.getElementById('cloudModalBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeCloudModal(); });
+document.getElementById('bigModalBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeBigTaskModal(); });
 
 // ─── PWA: регистрация service worker ──────────────────────────────────────────
 if ('serviceWorker' in navigator) {
