@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<!-- WeekPlan v4.6 | 2026-10-06 -->
+<!-- WeekPlan v4.7 | 2026-10-06 -->
 <title>WeekPlan</title>
 
 <!-- PWA -->
@@ -783,7 +783,7 @@
 <script>
 // ─── Константы ────────────────────────────────────────────────────────────────
 
-const APP_VERSION     = 'v4.6';
+const APP_VERSION     = 'v4.7';
 const STORAGE_KEY     = 'weekplan_data';
 const EXPORT_FILENAME = 'weekplan-tasks.json';
 
@@ -1451,16 +1451,37 @@ function sendSubtaskToDay(bigId, subId) {
   const big = getBigTask(bigId); if (!big) return;
   const st = big.subtasks.find(s => s.id === subId); if (!st) return;
   const todayKey = dateKey(new Date());
+
+  // Убираем прежние копии этой подзадачи со всех дней (чтобы не дублировать),
+  // перенося накопленное время и счётчик переносов на новую карточку.
+  const carriedTime = {};
+  let moved = 0, removed = 0;
+  Object.keys(tasks).forEach(k => {
+    tasks[k] = tasks[k].filter(t => {
+      if (t.bigTaskId === bigId && t.bigSubId === subId) {
+        if (t.timeByDay) for (const d in t.timeByDay) carriedTime[d] = (carriedTime[d] || 0) + t.timeByDay[d];
+        if (t.elapsed)   carriedTime[k] = (carriedTime[k] || 0) + t.elapsed; // старый формат
+        moved = Math.max(moved, t.movedCount || 0);
+        if (activeTimers[t.id]) delete activeTimers[t.id];
+        removed++;
+        return false;
+      }
+      return true;
+    });
+  });
+  stopTimerTickIfIdle();
+
   if (!tasks[todayKey]) tasks[todayKey] = [];
   tasks[todayKey].push({
     id: Date.now(), title: st.title, time: '', prio: 'morning',
-    project: null, done: false, timeByDay: {},
+    project: null, done: false, timeByDay: carriedTime,
+    movedCount: removed ? moved + 1 : 0,
     bigTaskId: bigId, bigSubId: subId,
   });
   st.scheduled = true;
   currentWeekOffset = 0;
   saveToStorage(); render();
-  showToast(`✓ «${st.title}» добавлена в сегодня`, 'success');
+  showToast(removed ? `✓ «${st.title}» перенесена в сегодня` : `✓ «${st.title}» добавлена в сегодня`, 'success');
 }
 
 // ─── Большая задача: модалка ──────────────────────────────────────────────────
