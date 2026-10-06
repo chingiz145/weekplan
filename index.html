@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<!-- WeekPlan v4.5 | 2026-10-05 -->
+<!-- WeekPlan v4.6 | 2026-10-06 -->
 <title>WeekPlan</title>
 
 <!-- PWA -->
@@ -783,7 +783,7 @@
 <script>
 // ─── Константы ────────────────────────────────────────────────────────────────
 
-const APP_VERSION     = 'v4.5';
+const APP_VERSION     = 'v4.6';
 const STORAGE_KEY     = 'weekplan_data';
 const EXPORT_FILENAME = 'weekplan-tasks.json';
 
@@ -1567,22 +1567,19 @@ function makeDayCol(date, dayName) {
 
   // Сортировка внутри дня:
   //   1) выполненные — всегда вниз
-  //   2) задачи с указанным временем — по хронологии (сверху вниз)
-  //   3) задачи без времени — ниже, сгруппированы по утро/день/вечер
+  //   2) время дня — утро → день → вечер (главный критерий)
+  //   3) внутри одного времени дня — по часам (без времени — в конце группы)
   const prioOrder = { morning: 0, high: 0, day: 1, medium: 1, evening: 2, low: 2 };
   const sorted = [...filtered].sort((a, b) => {
     if (a.done !== b.done) return a.done ? 1 : -1;
-
-    const ta = parseTimeMinutes(a);
-    const tb = parseTimeMinutes(b);
-
-    // Оба с временем — по времени
-    if (ta !== null && tb !== null) return ta - tb;
-    // Только один с временем — он выше
-    if (ta !== null) return -1;
-    if (tb !== null) return 1;
-    // Оба без времени — по времени дня (утро/день/вечер)
-    return (prioOrder[a.prio] ?? 1) - (prioOrder[b.prio] ?? 1);
+    // 1) время дня
+    const pa = prioOrder[a.prio] ?? 1, pb = prioOrder[b.prio] ?? 1;
+    if (pa !== pb) return pa - pb;
+    // 2) внутри группы — по часам; без времени уходит вниз группы
+    const ta = parseTimeMinutes(a), tb = parseTimeMinutes(b);
+    const va = ta === null ? Infinity : ta;
+    const vb = tb === null ? Infinity : tb;
+    return va - vb;
   });
 
   // Суммарное время ЗА ЭТОТ ДЕНЬ (только время наработанное в этот день)
